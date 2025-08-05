@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @db.VarChar(30)
+  email     String   @unique @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  createdProducts   Product[]
+  createdCarts      Cart[]
+}
+
+model Category {
+  id        String   @id @db.VarChar(30)
+  name      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  products Product[]
+}
+
+model Product {
+  id          String   @id @db.VarChar(30)
+  sku         String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(255)
+  description String   @db.Text
+  price       Float
+  unitPrice   BigInt   @map("unit_price")
+  currency    String   @default("NGN") @db.VarChar(3)
+  stockLevel  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String   @db.VarChar(30)
+  creator     User     @relation(fields: [createdBy], references: [id])
+  categoryId  String   @db.VarChar(30)
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  cartItems CartItem[]
+}
+
+model Cart {
+  id        String   @id @db.VarChar(30)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(30)
+  creator   User     @relation(fields: [createdBy], references: [id])
+  
+  cartItems CartItem[]
+}
+
+model CartItem {
+  id        String   @id @db.VarChar(30)
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cartId    String   @db.VarChar(30)
+  productId String   @db.VarChar(30)
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([cartId, productId])
+}
