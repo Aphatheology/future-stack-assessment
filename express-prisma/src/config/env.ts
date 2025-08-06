@@ -13,6 +13,8 @@ interface EnvVars {
   JWT_REFRESH_TOKEN_SECRET: string;
   JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS: string;
   CLIENT_URL: string;
+  SERVER_URL: string;
+  
 }
 
 const envVarsSchema = Joi.object<EnvVars>({
@@ -24,6 +26,7 @@ const envVarsSchema = Joi.object<EnvVars>({
   JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
   JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS: Joi.number().required(),
   CLIENT_URL: Joi.string().uri().required(),
+  SERVER_URL: Joi.string().uri().required(),
 }).unknown();
 
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -46,6 +49,9 @@ const config = {
   },
   client: {
     url: envVars.CLIENT_URL,
+  },
+  server: {
+    url: envVars.SERVER_URL,
   },
 };
 

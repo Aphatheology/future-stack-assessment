@@ -2,6 +2,7 @@ import { ulid } from 'ulid';
 
 export enum EntityPrefix {
   USER = 'usr',
+  USER_SESSION = 'ses',
   PRODUCT = 'prd',
   CATEGORY = 'cat',
   CART = 'crt',
