@@ -7,7 +7,6 @@ import ApiError from '../utils/apiError';
 import { SanitizedUser } from '../types/user.type';
 import prisma from '../config/prisma';
 import config from '../config/env';
-import { User } from '@prisma/client';
 
 export default class AuthService {
   async isEmailTaken(email: string): Promise<boolean> {

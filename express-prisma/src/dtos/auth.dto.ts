@@ -43,7 +43,7 @@ export interface RefreshTokenDto {
  *           type: string
  *           minLength: 8
  *           description: User's password (minimum 8 characters)
- *           example: "password123"
+ *           example: "P@ssword123!"
  *     LoginDto:
  *       type: object
  *       required:
@@ -58,7 +58,7 @@ export interface RefreshTokenDto {
  *         password:
  *           type: string
  *           description: User's password
- *           example: "password123"
+ *           example: "P@ssword123!"
  *     RefreshTokenDto:
  *       type: object
  *       required:

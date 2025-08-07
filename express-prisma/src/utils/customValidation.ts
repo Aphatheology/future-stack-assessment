@@ -5,8 +5,8 @@ export const password = (value: string, helpers: CustomHelpers) => {
   const hasMinLength = value.length >= 8;
   const hasUppercase = /[A-Z]/.test(value);
   const hasLowercase = /[a-z]/.test(value);
-  const hasNumber = /[0-9]/.test(value);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+  const hasNumber = /\d/.test(value);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value);
   
   if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecialChar) {
     return helpers.message({
@@ -27,6 +27,10 @@ export const ulid = (value: string, helpers: CustomHelpers) => {
 
 export const ulidWithPrefix = (expectedPrefix: EntityPrefix) => {
   return (value: string, helpers: CustomHelpers) => {
+    if (!UlidHelper.isValid(value)) {
+      return helpers.message({custom: 'Invalid ULID format'});
+    }
+    
     if (!UlidHelper.validatePrefix(value, expectedPrefix)) {
       return helpers.message({
         custom: `Invalid ULID format or prefix. Expected prefix: ${expectedPrefix}`
