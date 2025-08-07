@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsc-watch --onSuccess \"node ./dist/server.js\"",
     "prod": "cross-env NODE_ENV=production tsc && node ./dist/server.js",
-    "build": "yarn generate:prisma && yarn db:deploy && tsc",
+    "build": "tsc",
     "start": "node ./dist/server.js",
     "generate:prisma": "prisma generate",
     "db:deploy": "prisma migrate deploy",
