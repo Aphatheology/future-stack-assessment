@@ -1,16 +1,6 @@
 # Node.js
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# TypeScript
 dist/
-*.tsbuildinfo
 
 # Env files
 .env
