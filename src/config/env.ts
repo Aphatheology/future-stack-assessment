@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import Joi from 'joi';
+import { Request } from 'express';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
@@ -30,12 +31,21 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-const getServerUrl = (req?: any): string => {
+const getServerUrl = (req?: Request): string => {
   if (req) {
-    const protocol = req.protocol;
+    let protocol = req.protocol;
     const host = req.get('host');
+    
+    if (req.get('x-forwarded-proto')) {
+      const forwardedProto = req.get('x-forwarded-proto');
+      if (forwardedProto) {
+        protocol = forwardedProto;
+      }
+    }
+    
     return `${protocol}://${host}`;
   }
+  
   const port = envVars.PORT || '3000';
   return `http://localhost:${port}`;
 };

@@ -1,7 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import config from './env';
+import { Request } from 'express';
 
-const createSwaggerSpec = (req?: any) => {
+const createSwaggerSpec = (req?: Request) => {
   const serverUrl = config.getServerUrl(req);
   
   const options: swaggerJsdoc.Options = {
