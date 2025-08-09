@@ -17,12 +17,12 @@
     "sku"
   ],
   "type": "commonjs",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsc-watch --onSuccess \"node ./dist/server.js\"",
-    "prod": "cross-env NODE_ENV=production tsc && node ./dist/server.js",
+    "dev": "cross-env NODE_ENV=development tsc-watch --onSuccess \"node ./dist/src/server.js\"",
+    "prod": "cross-env NODE_ENV=production tsc && node ./dist/src/server.js",
     "build": "tsc",
-    "start": "node ./dist/server.js",
+    "start": "node ./dist/src/server.js",
     "generate:prisma": "prisma generate",
     "db:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset",
