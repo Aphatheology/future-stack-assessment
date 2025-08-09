@@ -1,5 +1,6 @@
 import { Router } from "express";
 import validate from '../middlewares/validate';
+import { authLimiter } from '../middlewares/rateLimiter';
 import * as userValidation from '../validations/auth.validation'
 import * as authController from '../controllers/auth.controller'
 
@@ -7,15 +8,19 @@ const router = Router();
 
 router
   .route("/register")
-  .post(validate(userValidation.register), authController.register);
+  .post(authLimiter, validate(userValidation.register), authController.register);
 
 router
   .route("/login")
-  .post(validate(userValidation.login), authController.login);
+  .post(authLimiter, validate(userValidation.login), authController.login);
 
 router
   .route("/refresh-token")
   .post(authController.refreshToken);
+
+router
+  .route("/logout")
+  .post(authController.logout);
 
 export default router;
 

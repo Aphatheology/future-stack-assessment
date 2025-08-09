@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../utils/catchAsync";
 import { StatusCodes } from 'http-status-codes';
 import AuthService from '../services/auth.service';
-import { sendSuccess } from '../utils/apiResponse';
+import { sendSuccess, sendError } from '../utils/apiResponse';
 import config from '../config/env';
 import { parseTimeToMs } from '../utils/time';
 import { SanitizedUser } from "../types/user.type";
@@ -60,7 +60,7 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<voi
     result.accessToken,
     getAccessCookieOptions(),
   );
-  sendSuccess(res, StatusCodes.OK, 'User login successfully', result.user);
+  sendSuccess(res, StatusCodes.OK, 'User logged in successfully', result.user);
 });
 
 export const refreshToken = catchAsync(async (req: Request, res: Response): Promise<void> => {
@@ -68,11 +68,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
       ?.refreshToken;
 
   if (!refreshTokenFromCookie) {
-    res.status(StatusCodes.UNAUTHORIZED).json({
-      success: false,
-      message: 'No refresh token found',
-      statusCode: StatusCodes.UNAUTHORIZED,
-    });
+    sendError(res, StatusCodes.UNAUTHORIZED, 'No refresh token found');
     return;
   }
 
@@ -88,4 +84,24 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
     getRefreshCookieOptions(),
   );
   sendSuccess(res, StatusCodes.OK, 'Token refreshed successfully');
+});
+
+export const logout = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })?.refreshToken;
+
+  if (!refreshTokenFromCookie) {
+    res.status(StatusCodes.UNAUTHORIZED).json({
+      status: 'error',
+      message: 'No refresh token provided',
+    });
+    return;
+  }
+
+  await authService.logout({ refreshToken: refreshTokenFromCookie });
+
+  // Clear cookies
+  res.cookie('accessToken', '', { ...getAccessCookieOptions(), maxAge: 0 });
+  res.cookie('refreshToken', '', { ...getRefreshCookieOptions(), maxAge: 0 });
+
+  sendSuccess(res, StatusCodes.OK, 'User logged out successfully');
 });

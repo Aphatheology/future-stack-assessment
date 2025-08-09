@@ -40,3 +40,51 @@ export const ulidWithPrefix = (expectedPrefix: EntityPrefix) => {
     return value;
   };
 };
+
+export const sanitizeString = (value: string, helpers: CustomHelpers) => {
+  if (typeof value !== 'string') {
+    return helpers.message({custom: 'Value must be a string'});
+  }
+  
+  const sanitized = value
+    .replace(/[<>]/g, '')
+    .replace(/[{}]/g, '')
+    .replace(/[^\u0020-\u007E\t\n\r]/g, '')
+    .trim();
+  
+  if (sanitized.length === 0 && value.length > 0) {
+    return helpers.message({custom: 'String contains only invalid characters'});
+  }
+  
+  return sanitized;
+};
+
+export const email = (value: string, helpers: CustomHelpers) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  if (!emailRegex.test(value)) {
+    return helpers.message({custom: 'Invalid email format'});
+  }
+  
+  if (value.length > 254) {
+    return helpers.message({custom: 'Email is too long'});
+  }
+  
+  return value.toLowerCase().trim();
+};
+
+export const noSqlInjection = (value: string, helpers: CustomHelpers) => {
+  const sqlPatterns = [
+    /(\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b)/i,
+    /(--|\/\*|\*\/)/,
+    /(\bor\b|\band\b)\s*\d+\s*=\s*\d+/i,
+    /['"]\s*(or|and)\s*['"]/i
+  ];
+  
+  for (const pattern of sqlPatterns) {
+    if (pattern.test(value)) {
+      return helpers.message({custom: 'Input contains potentially malicious content'});
+    }
+  }
+  return value;
+};

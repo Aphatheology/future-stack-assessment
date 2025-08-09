@@ -39,23 +39,18 @@ export default class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + Number(config.jwt.refreshTokenExpireInDays));
 
+    const refreshToken = generateRefreshToken({ userId: user.id, sessionId });
+
     await prisma.userSession.create({
       data: {
         id: sessionId,
         userId: user.id,
-        refreshToken: generateRefreshToken({ userId: user.id, sessionId }),
+        refreshToken,
         expiresAt,
       }
     });
 
-    const accessToken = generateAccessToken({
-      userId: user.id,
-    });
-
-    const refreshToken = generateRefreshToken({
-      userId: user.id,
-      sessionId,
-    });
+    const accessToken = generateAccessToken({ userId: user.id });
 
     const { password, ...sanitizedUser } = user;
     return { user: sanitizedUser, accessToken, refreshToken };
@@ -76,23 +71,18 @@ export default class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + Number(config.jwt.refreshTokenExpireInDays));
 
+    const refreshToken = generateRefreshToken({ userId: user.id, sessionId });
+
     await prisma.userSession.create({
       data: {
         id: sessionId,
         userId: user.id,
-        refreshToken: generateRefreshToken({ userId: user.id, sessionId }),
+        refreshToken,
         expiresAt,
       }
     });
 
-    const accessToken = generateAccessToken({
-      userId: user.id,
-    });
-
-    const refreshToken = generateRefreshToken({
-      userId: user.id,
-      sessionId,
-    });
+    const accessToken = generateAccessToken({ userId: user.id });
 
     const { password: userPassword, ...sanitizedUser } = user;
     return { user: sanitizedUser, accessToken, refreshToken };
@@ -153,6 +143,37 @@ export default class AuthService {
 
       const { password, ...sanitizedUser } = user;
       return { user: sanitizedUser, accessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid refresh token');
+    }
+  }
+
+  async logout(refreshTokenDto: RefreshTokenDto): Promise<void> {
+    const { refreshToken } = refreshTokenDto;
+
+    try {
+      const decoded = verifyRefreshToken(refreshToken);
+
+      const session = await prisma.userSession.findFirst({
+        where: {
+          id: decoded.sessionId,
+          userId: decoded.userId,
+          refreshToken,
+          deleted: false,
+        },
+      });
+
+      if (!session) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid refresh token');
+      }
+
+      await prisma.userSession.update({
+        where: { id: session.id },
+        data: { deleted: true, deletedAt: new Date() },
+      });
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;

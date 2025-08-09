@@ -2,6 +2,12 @@ import { PrismaClient } from '@prisma/client';
 import logger from './logger';
 import config from './env';
 
+const getTestDatabaseUrl = (): string => {
+  const url = new URL(config.db.url);
+  url.pathname = `/${process.env.TEST_DATABASE_NAME || 'test_shopping_cart_db'}`;
+  return url.toString();
+};
+
 const prisma = new PrismaClient({
   log: config.env === 'development' ? [
     {
@@ -26,6 +32,15 @@ const prisma = new PrismaClient({
       level: 'error',
     },
   ],
+  ...(config.env === 'test'
+    ? {
+        datasources: {
+          db: {
+            url: getTestDatabaseUrl(),
+          },
+        },
+      }
+    : {}),
 });
 
 // Only log queries in development

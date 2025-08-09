@@ -9,7 +9,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       ?.accessToken;
 
     if (!accessTokenFromCookie) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Please authenticate");
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "No token provided. Please authenticate");
     }
 
     const decoded = verifyAccessToken(accessTokenFromCookie);

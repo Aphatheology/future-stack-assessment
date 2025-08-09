@@ -12,9 +12,6 @@ interface EnvVars {
   JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE: string;
   JWT_REFRESH_TOKEN_SECRET: string;
   JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS: string;
-  CLIENT_URL: string;
-  SERVER_URL: string;
-  
 }
 
 const envVarsSchema = Joi.object<EnvVars>({
@@ -25,8 +22,6 @@ const envVarsSchema = Joi.object<EnvVars>({
   JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE: Joi.number().required(),
   JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
   JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS: Joi.number().required(),
-  CLIENT_URL: Joi.string().uri().required(),
-  SERVER_URL: Joi.string().uri().required(),
 }).unknown();
 
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -34,6 +29,16 @@ const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' }
 if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
+
+const getServerUrl = (req?: any): string => {
+  if (req) {
+    const protocol = req.protocol;
+    const host = req.get('host');
+    return `${protocol}://${host}`;
+  }
+  const port = envVars.PORT || '3000';
+  return `http://localhost:${port}`;
+};
 
 const config = {
   env: envVars.NODE_ENV,
@@ -47,12 +52,7 @@ const config = {
   db: {
     url: envVars.DATABASE_URL,
   },
-  client: {
-    url: envVars.CLIENT_URL,
-  },
-  server: {
-    url: envVars.SERVER_URL,
-  },
+  getServerUrl,
 };
 
 export default config;

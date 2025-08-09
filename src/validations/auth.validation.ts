@@ -1,11 +1,11 @@
 import Joi from 'joi';
-import { password } from '../utils/customValidation';
+import { noSqlInjection, password, sanitizeString } from '../utils/customValidation';
 
 export const register = {
   body: Joi.object({
       email: Joi.string().required().email(),
       password: Joi.string().required().custom(password),
-      name: Joi.string().required(),
+      name: Joi.string().required().custom(sanitizeString).custom(noSqlInjection),
     }),
 };
 
