@@ -7,11 +7,27 @@ Table User {
   updated_at timestamp [default: `now()`]
 }
 
+Table UserSession {
+  id varchar(30) [pk]
+  user_id varchar(30) [not null]
+  refresh_token text [not null]
+  established_at timestamp [default: `now()`]
+  expires_at timestamp [not null]
+  deleted boolean [default: false]
+  deleted_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  indexes {
+    (user_id, refresh_token) [unique]
+  }
+}
+
 Table Category {
   id varchar(30) [pk]
   name varchar(100) [unique, not null]
-  description varchar(500)
   created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table Product {
@@ -19,13 +35,23 @@ Table Product {
   sku varchar(50) [unique, not null]
   name varchar(255) [not null]
   description text
+  price float [not null]
   unit_price bigint [not null]
   currency varchar(3) [default: 'NGN', not null]
-  stock_level int [default: 0, not null]
+  stock_level int [not null]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
   created_by varchar(30) [not null]
   category_id varchar(30) [not null]
+  
+  indexes {
+    created_by
+    category_id  
+    stock_level
+    created_at
+    price
+    name
+  }
 }
 
 Table Cart {
@@ -33,11 +59,15 @@ Table Cart {
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
   created_by varchar(30) [not null]
+  
+  indexes {
+    created_by
+  }
 }
 
 Table CartItem {
   id varchar(30) [pk]
-  quantity int [not null, default: 1]
+  quantity int [not null]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
   cart_id varchar(30) [not null]
@@ -45,11 +75,33 @@ Table CartItem {
   
   indexes {
     (cart_id, product_id) [unique]
+    cart_id
+    product_id
   }
 }
 
+Table IdempotencyKey {
+  id varchar(30) [pk]
+  key varchar(255) [unique, not null]
+  user_id varchar(30) [not null]
+  product_id varchar(30)
+  expires_at timestamp [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  indexes {
+    key
+    user_id
+    expires_at
+  }
+}
+
+// Relationships
+Ref: UserSession.user_id > User.id [delete: cascade]
 Ref: Product.created_by > User.id
 Ref: Product.category_id > Category.id
 Ref: Cart.created_by > User.id
-Ref: CartItem.cart_id > Cart.id
-Ref: CartItem.product_id > Product.id
+Ref: CartItem.cart_id > Cart.id [delete: cascade]
+Ref: CartItem.product_id > Product.id [delete: cascade]
+Ref: IdempotencyKey.user_id > User.id [delete: cascade]
+Ref: IdempotencyKey.product_id > Product.id [delete: set null]

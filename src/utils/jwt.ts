@@ -3,6 +3,8 @@ import config from '../config/env';
 
 export interface TokenPayload {
   userId: string;
+  exp?: number;
+  iat?: number;
 }
 
 export interface RefreshTokenPayload {
@@ -11,7 +13,11 @@ export interface RefreshTokenPayload {
 }
 
 export const generateAccessToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, config.jwt.accessTokenSecret, {
+  const uniquePayload = {
+    ...payload,
+    timestamp: Date.now(),
+  };
+  return jwt.sign(uniquePayload, config.jwt.accessTokenSecret, {
     expiresIn: parseInt(config.jwt.accessTokenExpireInMinute) * 60,
   });
 };

@@ -16,7 +16,7 @@ const getRefreshCookieOptions = () => {
     httpOnly: true,
     secure: isProduction,
     sameSite,
-    path: '/api/v1/auth/refresh-token',
+    path: '/api/v1/auth',
     maxAge: parseTimeToMs(`${config.jwt.refreshTokenExpireInDays}d`),
   };
 };
@@ -87,17 +87,17 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
 });
 
 export const logout = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })?.refreshToken;
+  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })
+      ?.refreshToken;
+  const accessTokenFromCookie = (req.cookies as { accessToken: string })
+      ?.accessToken;
 
   if (!refreshTokenFromCookie) {
-    res.status(StatusCodes.UNAUTHORIZED).json({
-      status: 'error',
-      message: 'No refresh token provided',
-    });
+    sendError(res, StatusCodes.UNAUTHORIZED, 'No refresh token found');
     return;
   }
 
-  await authService.logout({ refreshToken: refreshTokenFromCookie });
+  await authService.logout({ refreshToken: refreshTokenFromCookie }, accessTokenFromCookie);
 
   // Clear cookies
   res.cookie('accessToken', '', { ...getAccessCookieOptions(), maxAge: 0 });

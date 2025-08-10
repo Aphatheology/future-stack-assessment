@@ -7,6 +7,7 @@ import ApiError from '../utils/apiError';
 import { SanitizedUser } from '../types/user.type';
 import prisma from '../config/prisma';
 import config from '../config/env';
+import TokenBlacklistService from './tokenBlacklist.service';
 
 export default class AuthService {
   async isEmailTaken(email: string): Promise<boolean> {
@@ -151,7 +152,7 @@ export default class AuthService {
     }
   }
 
-  async logout(refreshTokenDto: RefreshTokenDto): Promise<void> {
+  async logout(refreshTokenDto: RefreshTokenDto, accessToken?: string): Promise<void> {
     const { refreshToken } = refreshTokenDto;
 
     try {
@@ -170,10 +171,16 @@ export default class AuthService {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid refresh token');
       }
 
+      // Invalidate the refresh token session
       await prisma.userSession.update({
         where: { id: session.id },
         data: { deleted: true, deletedAt: new Date() },
       });
+
+      // Blacklist the access token if provided
+      if (accessToken) {
+        await TokenBlacklistService.addToBlacklist(accessToken);
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;

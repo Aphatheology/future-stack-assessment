@@ -2,6 +2,20 @@
 
 A RESTful API for a shopping cart system built with Node.js, TypeScript, Express, and MySQL using Prisma ORM.
 
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Database Schema](#-database-schema)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [API Documentation](#-api-documentation)
+- [Architecture & Design Decisions](#-architecture--design-decisions)
+- [Project Structure](#-project-structure)
+- [Testing](#-testing)
+- [Assumptions & Tradeoffs](#-assumptions--tradeoffs)
+- [Future Enhancements](#-future-enhancements)
+
 ## 🚀 Features
 
 ### Products Management
@@ -24,6 +38,7 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - ✅ JWT-based authentication
 - ✅ User registration and login
 - ✅ Protected routes for cart and product management
+- ✅ **Secure logout with token blacklisting** using Redis
 
 ### API Documentation
 - ✅ Complete Swagger/OpenAPI documentation
@@ -36,16 +51,34 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - **Framework**: Express.js
 - **Database**: MySQL
 - **ORM**: Prisma
+- **Cache**: Redis (for now, it is used mainly for token blacklisting)
 - **Authentication**: JWT
 - **Validation**: Joi
 - **Documentation**: Swagger/OpenAPI
 - **Logging**: Winston
 - **Security**: Helmet, CORS
 
+
+## 🗄 Database Schema
+
+The application uses a MySQL database with the following entity relationship diagram:
+
+![Database ERD](docs/images/assessment-erd.png)
+
+### Key Entities:
+- **User**: Manages user authentication and profile data
+- **UserSession**: Tracks active user sessions with refresh tokens
+- **Product**: Product catalog with pricing and stock level
+- **Category**: Product categorization system (no hierarchy for now)
+- **Cart & CartItem**: Shopping cart functionality
+- **IdempotencyKey**: Prevents duplicate operations
+
+
 ## 📋 Prerequisites
 
 - Node.js (v18 or later)
 - MySQL (v8.0 or later)
+- Redis 
 - yarn (npm can be used too, but will generate new package-lock.json)
 
 ## 🚀 Quick Start
@@ -74,15 +107,18 @@ DATABASE_URL="mysql://username:password@localhost:3306/shopping_cart_db"
 
 # JWT
 JWT_ACCESS_TOKEN_SECRET="your-super-secret-jwt-key"
-JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE="15"
-JWT_REFRESH_TOKEN_SECRET="your-refresh-secret"
-JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS="7d"
+JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE=15
+JWT_REFRESH_TOKEN_SECRET="your-super-secret-refresh-jwt-key"
+JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS=7
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
 
 # Server
+NODE_ENV=development
 PORT=3000
-NODE_ENV="development"
-SERVER_URL="http://localhost:3000"
-CLIENT_URL="http://localhost:5172"
 ```
 
 ### 3. Database Setup
@@ -91,10 +127,10 @@ CLIENT_URL="http://localhost:5172"
 # Generate Prisma client
 yarn generate:prisma
 
-# Run database migrations
+# Run migrations
 yarn db:deploy
 
-# Seed the database with sample data
+# Seed database (optional)
 yarn seed
 ```
 
@@ -121,7 +157,7 @@ Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be 
 - `POST /auth/register` - Register a new user
 - `POST /auth/login` - Login user
 - `POST /auth/refresh-token` - Refresh user's access token
-- `POST /auth/logout` - Logout user
+- `POST /auth/logout` - Logout user, invalidate session and access token
 
 ### Product Endpoints
 - `GET /products` - List products (public)
@@ -141,12 +177,6 @@ Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be 
 - `GET /categories` - Get all categories in the system
 
 ## 🏗 Architecture & Design Decisions
-
-### Database Design
-- **Users && UserSessions**: Store user authentication and profile data
-- **Categories**: Product categories
-- **Products**: Product information with stock levels
-- **Cart & CartItems**: User shopping cart with item relationships
 
 ### SKU Generation Strategy
 Auto-generated SKUs using category prefix + user ID segment + random component from a ulid:
@@ -173,7 +203,7 @@ Example: ELEC-0FEG-VHD8TK
 - Efficient Prisma queries with selective field inclusion
 - Connection pooling for database connections
 
-## 💰 Currency Handling
+### Currency Handling
 
 The system handles Nigerian Naira (NGN) with dual pricing:
 - **Unit Price**: Stored in kobo (smallest currency unit) for precision
@@ -189,13 +219,40 @@ Example:
 }
 ```
 
-## 🔒 Security Features
+### Security Features
 
 - JWT token authentication
+- Token invalidation
 - Password hashing with bcrypt
 - Input validation and sanitization
 - Helmet security headers
 - Environment variable protection
+
+
+### Idempotency
+
+The product creation endpoint supports idempotency to prevent duplicate requests and ensure data consistency.
+
+#### How It Works
+
+1. **Idempotency Key**: Required `X-Idempotency-Key` header for product creation
+2. **Duplicate Prevention**: Same key returns existing product, different key checks for duplicates
+3. **User-Scoped**: Keys are unique per user
+4. **Auto-Expiry**: Keys expire after 24 hours (will require a cron jobs to delete from db, can be improved by switching the idempotency key storage to redis)
+
+#### Usage Example
+
+```bash
+curl -X POST /api/v1/products \
+  -H "X-Idempotency-Key: create-laptop-2024-01-15" \
+  -H "Cookie: accessToken=your-token" \
+  -d '{
+    "name": "Gaming Laptop",
+    "price": 1500.99,
+    "stockLevel": 5,
+    "categoryId": "cat_123"
+  }'
+```
 
 ## 📂 Project Structure
 
@@ -212,31 +269,6 @@ src/
 └── validations/    # Joi validation schemas
 ```
 
-## 🔄 Idempotency
-
-The product creation endpoint supports idempotency to prevent duplicate requests and ensure data consistency.
-
-### How It Works
-
-1. **Idempotency Key**: Required `X-Idempotency-Key` header for product creation
-2. **Duplicate Prevention**: Same key returns existing product, different key checks for duplicates
-3. **User-Scoped**: Keys are unique per user
-4. **Auto-Expiry**: Keys expire after 24 hours
-
-### Usage Example
-
-```bash
-curl -X POST /api/v1/products \
-  -H "X-Idempotency-Key: create-laptop-2024-01-15" \
-  -H "Cookie: accessToken=your-token" \
-  -d '{
-    "name": "Gaming Laptop",
-    "price": 1500.99,
-    "stockLevel": 5,
-    "categoryId": "cat_123"
-  }'
-```
-
 ## 🧪 Testing
 
 ```bash
@@ -246,6 +278,13 @@ yarn test
 # Generate coverage report
 yarn test:coverage
 ```
+### Test Results
+
+The application maintains high test coverage across all modules:
+
+![Test Coverage](docs/images/test-coverage.png)
+
+![Test Summary](docs/images/test-summary.png)
 
 ### Test Database Configuration
 
@@ -263,30 +302,6 @@ The test suite includes:
 - **Security Tests**: Rate limiting, SQL injection prevention
 - **Edge Case Tests**: Error handling and boundary conditions
 
-## 🚀 Deployment
-
-### Environment Variables for Production
-
-```env
-NODE_ENV="production"
-DATABASE_URL="mysql://user:pass@host:port/db"
-JWT_SECRET="secure-production-secret"
-PORT=3000
-JWT_ACCESS_TOKEN_SECRET=
-JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE=
-JWT_REFRESH_TOKEN_SECRET=
-JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS=
-CLIENT_URL=
-SERVER_URL=
-```
-
-### Build and Deploy
-
-```bash
-yarn build
-yarn start
-```
-
 ## 🤔 Assumptions & Tradeoffs
 
 ### Assumptions Made
@@ -295,7 +310,7 @@ yarn start
 2. **Simple Categories**: One-level category hierarchy
 3. **Single Cart**: One cart per user (no multiple carts)
 4. **Stock Tracking**: Simple stock level tracking without reservations
-5. **No Checkout**: Cart management only, no payment processing
+5. **No Checkout**: Cart management only, no order/payment processing
 
 ### Tradeoffs
 
@@ -303,17 +318,17 @@ yarn start
    - **Chosen**: Auto-generated for consistency
    - **Tradeoff**: Less flexibility but prevents duplicates
 
-2. **Cart Persistence**: Session vs Database
-   - **Chosen**: Database persistence
-   - **Tradeoff**: More complex but survives sessions
-
-3. **Stock Validation**: Real-time vs eventual consistency
+2. **Stock Validation**: Real-time vs eventual consistency
    - **Chosen**: Real-time validation
-   - **Tradeoff**: Better UX but potential race conditions
+   - **Tradeoff**: Better UX but potential race conditions. Can be improved with stock reservation if order/payment flow is added. With redis, a ttl can be set and if an order is not completed within this period, the stock reservation is removed.
 
-4. **Authentication**: JWT vs Sessions
+3. **Authentication**: JWT vs Sessions
    - **Chosen**: JWT for stateless API
-   - **Tradeoff**: Token management complexity
+   - **Tradeoff**: Token management complexity (done with redis)
+
+4. **Framework**: Express vs Nest
+   - **Chosen**: Express for simplicity and flexibility
+   - **Tradeoff**: Hard to implement patterns. Less inbuilt integration. Lot of yaml code for swagger docs. If project is to be improved with order/payment flow, I will go with Nest.
 
 ## 🔮 Future Enhancements
 

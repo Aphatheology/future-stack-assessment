@@ -13,6 +13,9 @@ interface EnvVars {
   JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE: string;
   JWT_REFRESH_TOKEN_SECRET: string;
   JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS: string;
+  REDIS_HOST?: string;
+  REDIS_PORT?: string;
+  REDIS_PASSWORD?: string;
 }
 
 const envVarsSchema = Joi.object<EnvVars>({
@@ -23,6 +26,9 @@ const envVarsSchema = Joi.object<EnvVars>({
   JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTE: Joi.number().required(),
   JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
   JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS: Joi.number().required(),
+  REDIS_HOST: Joi.string().optional(),
+  REDIS_PORT: Joi.string().optional(),
+  REDIS_PASSWORD: Joi.string().optional(),
 }).unknown();
 
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
@@ -61,6 +67,11 @@ const config = {
   },
   db: {
     url: envVars.DATABASE_URL,
+  },
+  redis: {
+    host: envVars.REDIS_HOST || 'localhost',
+    port: parseInt(envVars.REDIS_PORT || '6379'),
+    password: envVars.REDIS_PASSWORD,
   },
   getServerUrl,
 };

@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import config from '../src/config/env';
 import { beforeAll, afterAll, beforeEach } from '@jest/globals';
 import logger from '../src/config/logger';
+import redis from '../src/config/redis';
 
 const getTestDatabaseUrl = (): string => {
   const url = new URL(config.db.url);
@@ -38,6 +39,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.$disconnect();
+  await redis.quit();
 });
 
 beforeEach(async () => {

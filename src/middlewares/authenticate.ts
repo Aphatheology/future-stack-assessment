@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import ApiError from "../utils/apiError";
 import { StatusCodes } from "http-status-codes";
 import { verifyAccessToken } from '../utils/jwt';
+import TokenBlacklistService from '../services/tokenBlacklist.service';
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -10,6 +11,11 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
     if (!accessTokenFromCookie) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "No token provided. Please authenticate");
+    }
+
+    const isBlacklisted = await TokenBlacklistService.isBlacklisted(accessTokenFromCookie);
+    if (isBlacklisted) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Token has been invalidated. Please login again');
     }
 
     const decoded = verifyAccessToken(accessTokenFromCookie);

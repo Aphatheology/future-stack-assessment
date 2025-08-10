@@ -188,3 +188,55 @@ export default router;
  *                   type: integer
  *                   example: 400
  */
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Authentication]
+ *     security: []
+ *     description: |
+ *       Logout the current user by invalidating their refresh token session.
+ *       This endpoint is public and only requires a valid refresh token in cookies.
+ *       After logout, both access and refresh tokens are cleared from cookies.
+ *     responses:
+ *       200:
+ *         description: User logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "User logged out successfully"
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *         headers:
+ *           Set-Cookie:
+ *             description: Access and refresh tokens cleared from cookies
+ *             schema:
+ *               type: string
+ *               example: "accessToken=; HttpOnly; Path=/; Max-Age=0"
+ *       401:
+ *         description: Unauthorized - no refresh token provided or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "error"
+ *                 message:
+ *                   type: string
+ *                   example: "No refresh token provided"
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ */
