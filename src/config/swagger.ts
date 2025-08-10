@@ -4,7 +4,7 @@ import { Request } from 'express';
 
 const createSwaggerSpec = (req?: Request) => {
   const serverUrl = config.getServerUrl(req);
-  
+
   const options: swaggerJsdoc.Options = {
     definition: {
       openapi: '3.0.0',

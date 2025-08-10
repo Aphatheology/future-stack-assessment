@@ -22,14 +22,17 @@ export class NGNCurrencyUtils {
   /**
    * Format price for display
    */
-  static formatPrice(kobo: bigint, options?: {
-    showSymbol?: boolean;
-    showCurrency?: boolean;
-    decimals?: number;
-  }): string {
+  static formatPrice(
+    kobo: bigint,
+    options?: {
+      showSymbol?: boolean;
+      showCurrency?: boolean;
+      decimals?: number;
+    }
+  ): string {
     const naira = this.koboToNaira(kobo);
     const { showSymbol = true, showCurrency = false, decimals = 2 } = options || {};
-    
+
     let formatted = naira.toLocaleString('en-NG', {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
@@ -57,12 +60,11 @@ export class NGNCurrencyUtils {
       .trim();
 
     const naira = parseFloat(cleaned);
-    
+
     if (isNaN(naira) || naira < 0) {
       throw new Error('Invalid price format');
     }
 
     return this.nairaToKobo(naira);
   }
-
 }

@@ -41,7 +41,9 @@ export const getProducts = {
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
-    sortBy: Joi.string().valid('name', 'price', 'stockLevel', 'createdAt', 'updatedAt').default('createdAt'),
+    sortBy: Joi.string()
+      .valid('name', 'price', 'stockLevel', 'createdAt', 'updatedAt')
+      .default('createdAt'),
     sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
     categoryId: Joi.string().custom(ulidWithPrefix(EntityPrefix.CATEGORY)),
     search: Joi.string().max(100).custom(sanitizeString).custom(noSqlInjection),

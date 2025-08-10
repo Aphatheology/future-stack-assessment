@@ -6,4 +6,4 @@ export interface PaginationResult<T> {
     total: number;
     totalPages: number;
   };
-} 
+}

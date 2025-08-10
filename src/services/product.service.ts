@@ -16,7 +16,12 @@ export default class ProductService {
     this.skuHelper = new SkuHelper(prisma);
   }
 
-  private parseNumber(value: string | number | undefined, min: number, max: number, defaultValue: number): number {
+  private parseNumber(
+    value: string | number | undefined,
+    min: number,
+    max: number,
+    defaultValue: number
+  ): number {
     if (typeof value === 'string') {
       const parsed = parseInt(value, 10);
       return isNaN(parsed) ? defaultValue : Math.min(max, Math.max(min, parsed));
@@ -58,7 +63,7 @@ export default class ProductService {
       search: queryDto.search,
       minPrice: this.parseFloat(queryDto.minPrice),
       maxPrice: this.parseFloat(queryDto.maxPrice),
-      inStock: this.parseBoolean(queryDto.inStock)
+      inStock: this.parseBoolean(queryDto.inStock),
     };
   }
 
@@ -69,7 +74,7 @@ export default class ProductService {
       createdBy: product.creator?.name || product.createdBy,
       category: product.category?.name || product.category,
       creator: undefined,
-      categoryId: undefined
+      categoryId: undefined,
     } as TransformedProduct;
   }
 
@@ -77,21 +82,24 @@ export default class ProductService {
     return products.map(product => this.transformProduct(product));
   }
 
-  private async checkIdempotencyKey(idempotencyKey: string, userId: string): Promise<TransformedProduct | null> {
+  private async checkIdempotencyKey(
+    idempotencyKey: string,
+    userId: string
+  ): Promise<TransformedProduct | null> {
     const existingKey = await prisma.idempotencyKey.findUnique({
       where: { key: idempotencyKey },
       include: {
         product: {
           include: {
             category: {
-              select: { name: true }
+              select: { name: true },
             },
             creator: {
-              select: { name: true }
-            }
-          }
-        }
-      }
+              select: { name: true },
+            },
+          },
+        },
+      },
     });
 
     if (existingKey && existingKey.userId === userId && existingKey.product) {
@@ -106,16 +114,23 @@ export default class ProductService {
       where: {
         createdBy: userId,
         name: name,
-        price: price
-      }
+        price: price,
+      },
     });
 
     if (existingProduct) {
-      throw new ApiError(StatusCodes.CONFLICT, 'A product with the same name and price already exists');
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        'A product with the same name and price already exists'
+      );
     }
   }
 
-  private async storeIdempotencyKey(idempotencyKey: string, userId: string, productId: string): Promise<void> {
+  private async storeIdempotencyKey(
+    idempotencyKey: string,
+    userId: string,
+    productId: string
+  ): Promise<void> {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
 
@@ -125,8 +140,8 @@ export default class ProductService {
         key: idempotencyKey,
         userId: userId,
         productId: productId,
-        expiresAt: expiresAt
-      }
+        expiresAt: expiresAt,
+      },
     });
   }
 
@@ -135,13 +150,17 @@ export default class ProductService {
     await prisma.idempotencyKey.deleteMany({
       where: {
         expiresAt: {
-          lt: now
-        }
-      }
+          lt: now,
+        },
+      },
     });
   }
 
-  async createProduct(userId: string, createProductDto: CreateProductDto, idempotencyKey?: string): Promise<TransformedProduct> {
+  async createProduct(
+    userId: string,
+    createProductDto: CreateProductDto,
+    idempotencyKey?: string
+  ): Promise<TransformedProduct> {
     const { name, description, price, stockLevel, categoryId } = createProductDto;
 
     if (idempotencyKey) {
@@ -154,11 +173,11 @@ export default class ProductService {
     await this.checkDuplicateProduct(userId, name, price);
 
     const category = await prisma.category.findUnique({
-      where: { id: categoryId }
+      where: { id: categoryId },
     });
 
     if (!category) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Category not found");
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Category not found');
     }
 
     const productId = UlidHelper.generate(EntityPrefix.PRODUCT);
@@ -180,15 +199,15 @@ export default class ProductService {
       include: {
         category: {
           select: {
-            name: true
-          }
+            name: true,
+          },
         },
         creator: {
           select: {
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     });
 
     if (idempotencyKey) {
@@ -199,7 +218,8 @@ export default class ProductService {
   }
 
   async getProducts(queryDto: ProductQueryDto): Promise<PaginationResult<TransformedProduct>> {
-    const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice, inStock } = this.parseQueryParams(queryDto);
+    const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice, inStock } =
+      this.parseQueryParams(queryDto);
 
     const skip = (page - 1) * limit;
     const where: Prisma.ProductWhereInput = {};
@@ -212,7 +232,7 @@ export default class ProductService {
       where.OR = [
         { name: { contains: search } },
         { description: { contains: search } },
-        { sku: { contains: search } }
+        { sku: { contains: search } },
       ];
     }
 
@@ -237,17 +257,17 @@ export default class ProductService {
         include: {
           category: {
             select: {
-              name: true
-            }
+              name: true,
+            },
           },
           creator: {
             select: {
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       }),
-      prisma.product.count({ where })
+      prisma.product.count({ where }),
     ]);
 
     return {
@@ -256,17 +276,21 @@ export default class ProductService {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
-  async getUserProducts(userId: string, queryDto: ProductQueryDto): Promise<PaginationResult<TransformedProduct>> {
-    const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice, inStock } = this.parseQueryParams(queryDto);
+  async getUserProducts(
+    userId: string,
+    queryDto: ProductQueryDto
+  ): Promise<PaginationResult<TransformedProduct>> {
+    const { page, limit, sortBy, sortOrder, categoryId, search, minPrice, maxPrice, inStock } =
+      this.parseQueryParams(queryDto);
 
     const skip = (page - 1) * limit;
     const where: Prisma.ProductWhereInput = {
-      createdBy: userId
+      createdBy: userId,
     };
 
     if (categoryId) {
@@ -277,7 +301,7 @@ export default class ProductService {
       where.OR = [
         { name: { contains: search } },
         { description: { contains: search } },
-        { sku: { contains: search } }
+        { sku: { contains: search } },
       ];
     }
 
@@ -302,17 +326,17 @@ export default class ProductService {
         include: {
           category: {
             select: {
-              name: true
-            }
+              name: true,
+            },
           },
           creator: {
             select: {
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       }),
-      prisma.product.count({ where })
+      prisma.product.count({ where }),
     ]);
 
     return {
@@ -321,8 +345,8 @@ export default class ProductService {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -332,48 +356,52 @@ export default class ProductService {
       include: {
         category: {
           select: {
-            name: true
-          }
+            name: true,
+          },
         },
         creator: {
           select: {
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     });
 
     if (!product) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Product not found");
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
     }
 
     return this.transformProduct(product);
   }
 
-  async updateProduct(productId: string, userId: string, updateProductDto: UpdateProductDto): Promise<TransformedProduct> {
+  async updateProduct(
+    productId: string,
+    userId: string,
+    updateProductDto: UpdateProductDto
+  ): Promise<TransformedProduct> {
     const existingProduct = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
     });
 
     if (!existingProduct) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Product not found");
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
     }
 
     if (existingProduct.createdBy !== userId) {
-      throw new ApiError(StatusCodes.FORBIDDEN, "You can only update your own products");
+      throw new ApiError(StatusCodes.FORBIDDEN, 'You can only update your own products');
     }
 
     if (updateProductDto.categoryId) {
       const category = await prisma.category.findUnique({
-        where: { id: updateProductDto.categoryId }
+        where: { id: updateProductDto.categoryId },
       });
       if (!category) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Category not found");
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Category not found');
       }
     }
 
     const updateData: Prisma.ProductUpdateInput = { ...updateProductDto };
-    
+
     if (updateProductDto.price !== undefined) {
       updateData.unitPrice = NGNCurrencyUtils.nairaToKobo(updateProductDto.price);
     }
@@ -390,15 +418,15 @@ export default class ProductService {
       include: {
         category: {
           select: {
-            name: true
-          }
+            name: true,
+          },
         },
         creator: {
           select: {
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     });
 
     return this.transformProduct(product);
@@ -406,22 +434,22 @@ export default class ProductService {
 
   async deleteProduct(productId: string, userId: string): Promise<void> {
     const existingProduct = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
     });
 
     if (!existingProduct) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Product not found");
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
     }
 
     if (existingProduct.createdBy !== userId) {
-      throw new ApiError(StatusCodes.FORBIDDEN, "You can only delete your own products");
+      throw new ApiError(StatusCodes.FORBIDDEN, 'You can only delete your own products');
     }
 
     // Check if product is in use by cart items and email the user
     // Make the delete a soft delete, and notify the user that the product has been deleted
 
     await prisma.product.delete({
-      where: { id: productId }
+      where: { id: productId },
     });
   }
 }

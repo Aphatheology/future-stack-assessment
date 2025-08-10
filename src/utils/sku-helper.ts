@@ -24,7 +24,7 @@ export class SkuHelper {
     if (existingProduct) {
       const newUniqueId = ulid().slice(-6);
       const newSku = `${categoryCode}-${userIdCode}-${newUniqueId}`;
-      
+
       logger.warn(`SKU collision (very rare!), using: ${newSku}`);
       return newSku;
     }
@@ -42,16 +42,16 @@ export class SkuHelper {
     }
 
     const categoryMappings: Record<string, string> = {
-      'Electronics': 'ELEC',
-      'Clothing': 'CLTH',
-      'Books': 'BOOK',
+      Electronics: 'ELEC',
+      Clothing: 'CLTH',
+      Books: 'BOOK',
       'Home & Garden': 'HOME',
-      'Sports': 'SPRT',
-      'Beauty': 'BEAU',
-      'Automotive': 'AUTO',
-      'Toys': 'TOYS',
-      'Health': 'HLTH',
-      'Food': 'FOOD',
+      Sports: 'SPRT',
+      Beauty: 'BEAU',
+      Automotive: 'AUTO',
+      Toys: 'TOYS',
+      Health: 'HLTH',
+      Food: 'FOOD',
     };
 
     if (categoryMappings[category.name]) {
@@ -59,7 +59,7 @@ export class SkuHelper {
     }
 
     const words = category.name.split(' ').filter(word => word.length > 0);
-    
+
     if (words.length === 1) {
       return words[0].substring(0, 4).toUpperCase();
     } else {
@@ -68,10 +68,9 @@ export class SkuHelper {
     }
   }
 
-
   getUserIdCode(userId: string): string {
     try {
-      const ulidPart = userId.split('_')[1];  
+      const ulidPart = userId.split('_')[1];
       if (!ulidPart) {
         throw new Error('Invalid user ID format: missing ULID part');
       }

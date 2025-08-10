@@ -1,18 +1,23 @@
-import { generateUserId, generateCategoryId, generateProductId } from '../src/utils/id-generator.service';
+import {
+  generateUserId,
+  generateCategoryId,
+  generateProductId,
+} from '../src/utils/id-generator.service';
 import { SkuHelper } from '../src/utils/sku-helper';
 import { hashPassword } from '../src/utils/password';
 import logger from '../src/config/logger';
 import { NGNCurrencyUtils } from '../src/utils/ngn-currency';
 import prisma from '../src/config/prisma';
+import { Category, User } from '@prisma/client';
 
 const skuHelper = new SkuHelper(prisma);
 
 async function seedProducts(
-  electronics: any,
-  clothing: any,
-  books: any,
-  user1: any,
-  user2: any
+  electronics: Category,
+  clothing: Category,
+  books: Category,
+  user1: User,
+  user2: User
 ) {
   const skus = await Promise.all([
     skuHelper.generateProductSku(electronics.id, user1.id),
@@ -91,7 +96,8 @@ async function seedProducts(
         id: generateProductId(),
         sku: skus[4],
         name: 'Clean Code',
-        description: 'A Handbook of Agile Software Craftsmanship by Robert C. Martin',
+        description:
+          'A Handbook of Agile Software Craftsmanship by Robert C. Martin',
         price: 39.99,
         unitPrice: NGNCurrencyUtils.nairaToKobo(39.99),
         stockLevel: 30,
@@ -116,7 +122,10 @@ async function seedProducts(
     }),
   ]);
 
-  logger.info('✅ Products created: %o', products.map(p => ({ name: p.name, price: p.price })));
+  logger.info(
+    '✅ Products created: %o',
+    products.map(p => ({ name: p.name, price: p.price }))
+  );
 }
 
 async function main() {
@@ -173,7 +182,11 @@ async function main() {
     },
   });
 
-  logger.info('✅ Categories created: %o', { electronics: electronics.name, clothing: clothing.name, books: books.name });
+  logger.info('✅ Categories created: %o', {
+    electronics: electronics.name,
+    clothing: clothing.name,
+    books: books.name,
+  });
 
   await seedProducts(electronics, clothing, books, user1, user2);
 
@@ -181,10 +194,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     logger.error('❌ Error during seeding: %o', e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });

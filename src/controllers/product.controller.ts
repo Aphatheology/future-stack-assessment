@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import catchAsync from "../utils/catchAsync";
+import { Request, Response } from 'express';
+import catchAsync from '../utils/catchAsync';
 import { StatusCodes } from 'http-status-codes';
 import ProductService from '../services/product.service';
 import { sendSuccess } from '../utils/apiResponse';
@@ -16,9 +16,17 @@ export const createProduct = catchAsync(async (req: Request, res: Response): Pro
 
 export const getProducts = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const queryDto = pick(req.query, [
-    'page', 'limit', 'sortBy', 'sortOrder', 'categoryId', 'search', 'minPrice', 'maxPrice', 'inStock'
+    'page',
+    'limit',
+    'sortBy',
+    'sortOrder',
+    'categoryId',
+    'search',
+    'minPrice',
+    'maxPrice',
+    'inStock',
   ]);
-  
+
   const result = await productService.getProducts(queryDto);
   sendSuccess(res, StatusCodes.OK, 'Products retrieved successfully', result);
 });
@@ -26,9 +34,17 @@ export const getProducts = catchAsync(async (req: Request, res: Response): Promi
 export const getUserProducts = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user.userId;
   const queryDto = pick(req.query, [
-    'page', 'limit', 'sortBy', 'sortOrder', 'categoryId', 'search', 'minPrice', 'maxPrice', 'inStock'
+    'page',
+    'limit',
+    'sortBy',
+    'sortOrder',
+    'categoryId',
+    'search',
+    'minPrice',
+    'maxPrice',
+    'inStock',
   ]);
-  
+
   const result = await productService.getUserProducts(userId, queryDto);
   sendSuccess(res, StatusCodes.OK, 'User products retrieved successfully', result);
 });

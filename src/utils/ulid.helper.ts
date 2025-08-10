@@ -27,7 +27,7 @@ export class UlidHelper {
     }
 
     const [prefix, ulidPart] = id.split('_', 2);
-    
+
     if (!prefix || !ulidPart || ulidPart.length !== 26) {
       return null;
     }

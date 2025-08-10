@@ -27,7 +27,7 @@ export const apiLimiter = rateLimit({
   message: {
     status: 'error',
     message: 'Rate limit exceeded. Please try again later.',
-    hint: 'Consider signing in for higher rate limits.'
+    hint: 'Consider signing in for higher rate limits.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -44,7 +44,7 @@ export const authLimiter = rateLimit({
   message: {
     status: 'error',
     message: 'Too many authentication attempts. Please try again later.',
-    retryAfter: '5 minutes'
+    retryAfter: '5 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,

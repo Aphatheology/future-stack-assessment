@@ -5,9 +5,7 @@ import logger from './logger';
 morgan.token('message', (_req: Request, res: Response) => res.locals['errorMessage'] || '');
 
 morgan.token('remote-addr', (req: Request) => {
-  return req.headers['x-forwarded-for'] as string || 
-         req.socket.remoteAddress || 
-         req.ip;
+  return (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || req.ip;
 });
 
 const getIpFormat = () => ':remote-addr - ';

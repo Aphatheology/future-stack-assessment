@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
-import catchAsync from "../utils/catchAsync";
+import { Request, Response } from 'express';
+import catchAsync from '../utils/catchAsync';
 import { StatusCodes } from 'http-status-codes';
 import AuthService from '../services/auth.service';
 import { sendSuccess, sendError } from '../utils/apiResponse';
 import config from '../config/env';
 import { parseTimeToMs } from '../utils/time';
-import { SanitizedUser } from "../types/user.type";
+import { SanitizedUser } from '../types/user.type';
 
 const authService = new AuthService();
 
@@ -35,62 +35,37 @@ const getAccessCookieOptions = () => {
 
 export const register = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const result = await authService.register(req.body);
-  res.cookie(
-    'refreshToken',
-    result.refreshToken,
-    getRefreshCookieOptions(),
-  );
-  res.cookie(
-    'accessToken',
-    result.accessToken,
-    getAccessCookieOptions(),
-  );
+  res.cookie('refreshToken', result.refreshToken, getRefreshCookieOptions());
+  res.cookie('accessToken', result.accessToken, getAccessCookieOptions());
   sendSuccess<SanitizedUser>(res, StatusCodes.CREATED, 'User registered successfully', result.user);
 });
 
 export const login = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const result = await authService.login(req.body);
-  res.cookie(
-    'refreshToken',
-    result.refreshToken,
-    getRefreshCookieOptions(),
-  );
-  res.cookie(
-    'accessToken',
-    result.accessToken,
-    getAccessCookieOptions(),
-  );
+  res.cookie('refreshToken', result.refreshToken, getRefreshCookieOptions());
+  res.cookie('accessToken', result.accessToken, getAccessCookieOptions());
   sendSuccess(res, StatusCodes.OK, 'User logged in successfully', result.user);
 });
 
 export const refreshToken = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })
-      ?.refreshToken;
+  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })?.refreshToken;
 
   if (!refreshTokenFromCookie) {
     sendError(res, StatusCodes.UNAUTHORIZED, 'No refresh token found');
     return;
   }
 
-  const result = await authService.refreshToken({ refreshToken: refreshTokenFromCookie });
-  res.cookie(
-    'accessToken',
-    result.accessToken,
-    getAccessCookieOptions(),
-  );
-  res.cookie(
-    'refreshToken',
-    result.refreshToken,
-    getRefreshCookieOptions(),
-  );
+  const result = await authService.refreshToken({
+    refreshToken: refreshTokenFromCookie,
+  });
+  res.cookie('accessToken', result.accessToken, getAccessCookieOptions());
+  res.cookie('refreshToken', result.refreshToken, getRefreshCookieOptions());
   sendSuccess(res, StatusCodes.OK, 'Token refreshed successfully');
 });
 
 export const logout = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })
-      ?.refreshToken;
-  const accessTokenFromCookie = (req.cookies as { accessToken: string })
-      ?.accessToken;
+  const refreshTokenFromCookie = (req.cookies as { refreshToken: string })?.refreshToken;
+  const accessTokenFromCookie = (req.cookies as { accessToken: string })?.accessToken;
 
   if (!refreshTokenFromCookie) {
     sendError(res, StatusCodes.UNAUTHORIZED, 'No refresh token found');

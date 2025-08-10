@@ -10,10 +10,11 @@ export default class TokenBlacklistService {
       const decoded = verifyAccessToken(token);
       const tokenExpiry = (decoded.exp || 0) * 1000;
       const currentTime = Date.now();
-      
+
       // Calculate TTL (time to live) for the blacklisted token
-      const ttl = Math.max(0, Math.floor((tokenExpiry - currentTime) / 1000)) + this.TOKEN_EXPIRY_BUFFER;
-      
+      const ttl =
+        Math.max(0, Math.floor((tokenExpiry - currentTime) / 1000)) + this.TOKEN_EXPIRY_BUFFER;
+
       if (ttl > 0) {
         const key = `${this.BLACKLIST_PREFIX}${token}`;
         await redis.setex(key, ttl, '1');

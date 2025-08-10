@@ -3,10 +3,10 @@ import { noSqlInjection, password, sanitizeString } from '../utils/customValidat
 
 export const register = {
   body: Joi.object({
-      email: Joi.string().required().email(),
-      password: Joi.string().required().custom(password),
-      name: Joi.string().required().custom(sanitizeString).custom(noSqlInjection),
-    }),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().custom(password),
+    name: Joi.string().required().custom(sanitizeString).custom(noSqlInjection),
+  }),
 };
 
 export const login = {

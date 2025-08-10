@@ -12,16 +12,20 @@ import TokenBlacklistService from './tokenBlacklist.service';
 export default class AuthService {
   async isEmailTaken(email: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
     return !!user;
   }
 
-  async register(registerDto: RegisterDto): Promise<{ user: SanitizedUser; accessToken: string; refreshToken: string }> {
+  async register(registerDto: RegisterDto): Promise<{
+    user: SanitizedUser;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const { name, email, password: plainPassword } = registerDto;
 
     if (await this.isEmailTaken(email)) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Email already registered");
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already registered');
     }
 
     const hashedPassword = await hashPassword(plainPassword);
@@ -34,7 +38,7 @@ export default class AuthService {
         name,
         email,
         password: hashedPassword,
-      }
+      },
     });
 
     const expiresAt = new Date();
@@ -48,20 +52,24 @@ export default class AuthService {
         userId: user.id,
         refreshToken,
         expiresAt,
-      }
+      },
     });
 
     const accessToken = generateAccessToken({ userId: user.id });
 
-    const { password, ...sanitizedUser } = user;
+    const { password: _, ...sanitizedUser } = user;
     return { user: sanitizedUser, accessToken, refreshToken };
   }
 
-  async login(loginDto: LoginDto): Promise<{ user: SanitizedUser; accessToken: string; refreshToken: string }> {
+  async login(loginDto: LoginDto): Promise<{
+    user: SanitizedUser;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const { email, password } = loginDto;
 
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (!user || !(await comparePassword(password, user.password))) {
@@ -80,21 +88,25 @@ export default class AuthService {
         userId: user.id,
         refreshToken,
         expiresAt,
-      }
+      },
     });
 
     const accessToken = generateAccessToken({ userId: user.id });
 
-    const { password: userPassword, ...sanitizedUser } = user;
+    const { password: _, ...sanitizedUser } = user;
     return { user: sanitizedUser, accessToken, refreshToken };
   }
 
-  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<{ user: SanitizedUser; accessToken: string; refreshToken: string }> {
+  async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<{
+    user: SanitizedUser;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const { refreshToken } = refreshTokenDto;
 
     try {
       const decoded = verifyRefreshToken(refreshToken);
-      
+
       const session = await prisma.userSession.findFirst({
         where: {
           id: decoded.sessionId,
@@ -102,12 +114,12 @@ export default class AuthService {
           refreshToken,
           deleted: false,
           expiresAt: {
-            gt: new Date()
-          }
+            gt: new Date(),
+          },
         },
         include: {
-          user: true
-        }
+          user: true,
+        },
       });
 
       if (!session) {
@@ -121,16 +133,19 @@ export default class AuthService {
 
       await prisma.userSession.update({
         where: { id: session.id },
-        data: { deleted: true, deletedAt: new Date() }
+        data: { deleted: true, deletedAt: new Date() },
       });
 
       await prisma.userSession.create({
         data: {
           id: newSessionId,
           userId: user.id,
-          refreshToken: generateRefreshToken({ userId: user.id, sessionId: newSessionId }),
+          refreshToken: generateRefreshToken({
+            userId: user.id,
+            sessionId: newSessionId,
+          }),
           expiresAt,
-        }
+        },
       });
 
       const accessToken = generateAccessToken({
@@ -142,8 +157,12 @@ export default class AuthService {
         sessionId: newSessionId,
       });
 
-      const { password, ...sanitizedUser } = user;
-      return { user: sanitizedUser, accessToken, refreshToken: newRefreshToken };
+      const { password: _, ...sanitizedUser } = user;
+      return {
+        user: sanitizedUser,
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;

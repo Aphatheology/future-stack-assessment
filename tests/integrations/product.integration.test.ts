@@ -4,15 +4,16 @@ import { UlidHelper, EntityPrefix } from '../../src/utils/ulid.helper';
 import { prisma } from '../setup';
 import { hashPassword } from '../../src/utils/password';
 import app from '../../src/app';
+import { Product, Category, User } from '@prisma/client';
 
 describe('Product API Integration Tests', () => {
   let testApp: Express;
   let authToken: string;
   let authToken2: string;
-  let testUser: any;
-  let testUser2: any;
-  let testCategory: any;
-  let testCategory2: any;
+  let testUser: User;
+  let testUser2: User;
+  let testCategory: Category;
+  let testCategory2: Category;
 
   beforeAll(async () => {
     testApp = app;
@@ -76,23 +77,18 @@ describe('Product API Integration Tests', () => {
 
     const cookies1 = loginResponse1.headers['set-cookie'];
     const cookies2 = loginResponse2.headers['set-cookie'];
-    
+
     const cookies1Array = cookies1 as unknown as string[];
     const cookies2Array = cookies2 as unknown as string[];
-    const accessCookie1 = cookies1Array?.find((cookie: string) => cookie.includes('accessToken'));
-    const accessCookie2 = cookies2Array?.find((cookie: string) => cookie.includes('accessToken'));
-    
+    const accessCookie1 = cookies1Array?.find((cookie: string) =>
+      cookie.includes('accessToken')
+    );
+    const accessCookie2 = cookies2Array?.find((cookie: string) =>
+      cookie.includes('accessToken')
+    );
+
     authToken = accessCookie1?.split('=')[1].split(';')[0] || '';
     authToken2 = accessCookie2?.split('=')[1].split(';')[0] || '';
-  });
-
-  afterEach(async () => {
-    // Clean up after each test
-    await prisma.product.deleteMany();
-    await prisma.category.deleteMany();
-    await prisma.userSession.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.idempotencyKey.deleteMany();
   });
 
   describe('POST /api/v1/products', () => {
@@ -199,7 +195,9 @@ describe('Product API Integration Tests', () => {
 
       // Name should be sanitized
       expect(response.body.data.name).not.toContain('<script>');
-      expect(response.body.data.name).toBe('Gaming scriptalert("xss")/script Laptop');
+      expect(response.body.data.name).toBe(
+        'Gaming scriptalert("xss")/script Laptop'
+      );
     });
 
     it('should require X-Idempotency-Key header', async () => {
@@ -218,7 +216,9 @@ describe('Product API Integration Tests', () => {
         .expect(400);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toBe('X-Idempotency-Key header is required');
+      expect(response.body.message).toBe(
+        'X-Idempotency-Key header is required'
+      );
     });
 
     it('should return same product for duplicate idempotency key', async () => {
@@ -267,7 +267,9 @@ describe('Product API Integration Tests', () => {
         .expect(400);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toContain('Idempotency key can only contain alphanumeric characters');
+      expect(response.body.message).toContain(
+        'Idempotency key can only contain alphanumeric characters'
+      );
     });
 
     it('should prevent duplicate products with same name and price', async () => {
@@ -294,7 +296,9 @@ describe('Product API Integration Tests', () => {
         .expect(409);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toBe('A product with the same name and price already exists');
+      expect(response.body.message).toBe(
+        'A product with the same name and price already exists'
+      );
     });
 
     it('should allow different users to create products with same name and price', async () => {
@@ -335,7 +339,7 @@ describe('Product API Integration Tests', () => {
           sku: 'ELEC-001',
           name: 'Gaming Laptop',
           description: 'High performance gaming laptop',
-          price: 1500.00,
+          price: 1500.0,
           unitPrice: BigInt(150000),
           stockLevel: 5,
           createdBy: testUser.id,
@@ -346,7 +350,7 @@ describe('Product API Integration Tests', () => {
           sku: 'ELEC-002',
           name: 'Smartphone',
           description: 'Latest smartphone model',
-          price: 800.00,
+          price: 800.0,
           unitPrice: BigInt(80000),
           stockLevel: 0, // Out of stock
           createdBy: testUser.id,
@@ -411,7 +415,9 @@ describe('Product API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.data.data).toHaveLength(2);
-      expect(response.body.data.data.every((p: any) => p.stockLevel > 0)).toBe(true);
+      expect(
+        response.body.data.data.every((p: Product) => p.stockLevel > 0)
+      ).toBe(true);
     });
 
     it('should sort products by price', async () => {
@@ -419,7 +425,7 @@ describe('Product API Integration Tests', () => {
         .get('/api/v1/products?sortBy=price&sortOrder=asc')
         .expect(200);
 
-      const prices = response.body.data.data.map((p: any) => p.price);
+      const prices = response.body.data.data.map((p: Product) => p.price);
       expect(prices).toEqual([...prices].sort((a, b) => a - b));
     });
 
@@ -434,7 +440,7 @@ describe('Product API Integration Tests', () => {
   });
 
   describe('GET /api/v1/products/:id', () => {
-    let testProduct: any;
+    let testProduct: Product;
 
     beforeEach(async () => {
       testProduct = await prisma.product.create({
@@ -488,7 +494,7 @@ describe('Product API Integration Tests', () => {
   });
 
   describe('PUT /api/v1/products/:id', () => {
-    let testProduct: any;
+    let testProduct: Product;
 
     beforeEach(async () => {
       testProduct = await prisma.product.create({
@@ -561,7 +567,7 @@ describe('Product API Integration Tests', () => {
   });
 
   describe('DELETE /api/v1/products/:id', () => {
-    let testProduct: any;
+    let testProduct: Product;
 
     beforeEach(async () => {
       testProduct = await prisma.product.create({
@@ -584,7 +590,6 @@ describe('Product API Integration Tests', () => {
         .delete(`/api/v1/products/${testProduct.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .expect(204);
-
 
       // Verify product is deleted
       const deletedProduct = await prisma.product.findUnique({

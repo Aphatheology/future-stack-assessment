@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import catchAsync from "../utils/catchAsync";
+import catchAsync from '../utils/catchAsync';
 import CategoryService from '../services/category.service';
 import { sendSuccess } from '../utils/apiResponse';
 

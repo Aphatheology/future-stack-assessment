@@ -22,13 +22,13 @@ const prisma = new PrismaClient({
 beforeAll(async () => {
   try {
     logger.info('🔧 Setting up test database...');
-    
+
     process.env.DATABASE_URL = getTestDatabaseUrl();
-    execSync('npx prisma migrate deploy', { 
+    execSync('npx prisma migrate deploy', {
       stdio: 'inherit',
-      env: { ...process.env, DATABASE_URL: getTestDatabaseUrl() }
+      env: { ...process.env, DATABASE_URL: getTestDatabaseUrl() },
     });
-    
+
     await prisma.$connect();
     logger.info('✅ Test database ready!');
   } catch (error) {
@@ -38,11 +38,29 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await prisma.$disconnect();
-  await redis.quit();
+  try {
+    logger.info('🧹 Cleaning up test database...');
+
+    // Clean up all data in correct order (respecting foreign keys)
+    await prisma.cartItem.deleteMany();
+    await prisma.cart.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.category.deleteMany();
+    await prisma.userSession.deleteMany();
+    await prisma.user.deleteMany();
+
+    logger.info('✅ Test database cleaned up!');
+  } catch (error) {
+    logger.error('❌ Failed to cleanup test database:', error);
+  } finally {
+    await prisma.$disconnect();
+    await redis.quit();
+  }
 });
 
 beforeEach(async () => {
+  // Clean up all data in correct order (respecting foreign keys)
+  await prisma.idempotencyKey.deleteMany();
   await prisma.cartItem.deleteMany();
   await prisma.cart.deleteMany();
   await prisma.product.deleteMany();

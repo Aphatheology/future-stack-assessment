@@ -15,13 +15,13 @@ describe('Logout Integration Tests', () => {
 
   beforeEach(async () => {
     authService = new AuthService();
-    
+
     const registerData = {
       name: 'Test User',
       email: 'logout_test@example.com',
       password: 'P@ssw0rd123',
     };
-    
+
     const result = await authService.register(registerData);
     accessToken = result.accessToken;
     refreshToken = result.refreshToken;
@@ -33,7 +33,7 @@ describe('Logout Integration Tests', () => {
         .post('/api/v1/auth/logout')
         .set('Cookie', [
           `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`
+          `refreshToken=${refreshToken}`,
         ])
         .expect(200);
 
@@ -42,10 +42,14 @@ describe('Logout Integration Tests', () => {
 
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      
-      const accessTokenCookie = cookies.find(cookie => cookie.includes('accessToken'));
-      const refreshTokenCookie = cookies.find(cookie => cookie.includes('refreshToken'));
-      
+
+      const accessTokenCookie = cookies.find(cookie =>
+        cookie.includes('accessToken')
+      );
+      const refreshTokenCookie = cookies.find(cookie =>
+        cookie.includes('refreshToken')
+      );
+
       expect(accessTokenCookie).toContain('Max-Age=0');
       expect(refreshTokenCookie).toContain('Max-Age=0');
     });
@@ -55,7 +59,7 @@ describe('Logout Integration Tests', () => {
         .post('/api/v1/auth/logout')
         .set('Cookie', [
           `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`
+          `refreshToken=${refreshToken}`,
         ])
         .expect(200);
 
@@ -73,7 +77,7 @@ describe('Logout Integration Tests', () => {
         .post('/api/v1/auth/logout')
         .set('Cookie', [
           `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`
+          `refreshToken=${refreshToken}`,
         ])
         .expect(200);
 
@@ -91,27 +95,31 @@ describe('Logout Integration Tests', () => {
         .post('/api/v1/auth/logout')
         .set('Cookie', [
           `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`
+          `refreshToken=${refreshToken}`,
         ])
         .expect(200);
-    
+
       const loginData = {
         email: 'logout_test@example.com',
         password: 'P@ssw0rd123',
       };
-    
+
       const loginResponse = await request(testApp)
         .post('/api/v1/auth/login')
         .send(loginData)
         .expect(200);
-    
-      const cookies = loginResponse.headers['set-cookie'] as unknown as string[];
-      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+
+      const cookies = loginResponse.headers[
+        'set-cookie'
+      ] as unknown as string[];
+      const accessTokenCookie = cookies.find(cookie =>
+        cookie.startsWith('accessToken=')
+      );
 
       const response = await request(testApp)
         .get('/api/v1/carts')
         .set('Cookie', [accessTokenCookie as string]);
-    
+
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
     });
@@ -131,7 +139,7 @@ describe('Logout Integration Tests', () => {
         .post('/api/v1/auth/logout')
         .set('Cookie', [
           `accessToken=${accessToken}`,
-          'refreshToken=invalid-refresh-token'
+          'refreshToken=invalid-refresh-token',
         ])
         .expect(401);
 

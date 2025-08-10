@@ -1,23 +1,28 @@
-import { Router } from "express";
+import { Router } from 'express';
 import validate from '../middlewares/validate';
 import { authenticate } from '../middlewares/authenticate';
 import { validateIdempotencyKey } from '../middlewares/idempotency';
-import * as productValidation from '../validations/product.validation'
-import * as productController from '../controllers/product.controller'
+import * as productValidation from '../validations/product.validation';
+import * as productController from '../controllers/product.controller';
 
 const router = Router();
 
 router
-  .route("/")
-  .post(authenticate, validateIdempotencyKey, validate(productValidation.createProduct), productController.createProduct)
+  .route('/')
+  .post(
+    authenticate,
+    validateIdempotencyKey,
+    validate(productValidation.createProduct),
+    productController.createProduct
+  )
   .get(validate(productValidation.getProducts), productController.getProducts);
 
 router
-  .route("/my-products")
+  .route('/my-products')
   .get(authenticate, validate(productValidation.getProducts), productController.getUserProducts);
 
 router
-  .route("/:productId")
+  .route('/:productId')
   .get(validate(productValidation.getProduct), productController.getProduct)
   .put(authenticate, validate(productValidation.updateProduct), productController.updateProduct)
   .delete(authenticate, validate(productValidation.deleteProduct), productController.deleteProduct);

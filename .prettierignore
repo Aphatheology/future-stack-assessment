@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+*.log
+*.lock
+.DS_Store
+.env
+.env.*
+prisma/
+docs/images/

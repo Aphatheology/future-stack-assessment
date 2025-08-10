@@ -5,11 +5,11 @@ export default class CategoryService {
     const categories = await prisma.category.findMany({
       select: {
         id: true,
-        name: true
+        name: true,
       },
       orderBy: {
-        name: 'asc'
-      }
+        name: 'asc',
+      },
     });
 
     return categories;

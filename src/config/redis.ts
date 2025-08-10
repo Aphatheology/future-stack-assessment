@@ -9,22 +9,12 @@ const redis = new Redis({
   maxRetriesPerRequest: 3,
 });
 
-redis.on('error', (error) => {
+redis.on('error', error => {
   logger.error('Redis connection error:', error);
 });
 
 redis.on('connect', () => {
   logger.info('Redis connected successfully');
-});
-
-process.on('SIGINT', async () => {
-  await redis.quit();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await redis.quit();
-  process.exit(0);
 });
 
 export default redis;

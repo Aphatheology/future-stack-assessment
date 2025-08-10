@@ -2,6 +2,7 @@ import app from './app';
 import config from './config/env';
 import logger from './config/logger';
 import prisma from './config/prisma';
+import redis from './config/redis';
 
 const startServer = async () => {
   try {
@@ -16,6 +17,9 @@ const startServer = async () => {
       logger.info('Shutting down...');
       await prisma.$disconnect();
       logger.info('Database connection closed');
+      await redis.quit();
+      logger.info('Redis connection closed');
+
       server.close(() => {
         logger.info('Server closed');
         process.exit(0);

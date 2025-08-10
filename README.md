@@ -16,9 +16,11 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - [Assumptions & Tradeoffs](#-assumptions--tradeoffs)
 - [Future Enhancements](#-future-enhancements)
 
+
 ## 🚀 Features
 
 ### Products Management
+
 - ✅ Create, read, update, and delete products
 - ✅ Product categorization with auto-generated SKUs
 - ✅ Stock level management
@@ -27,6 +29,7 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - ✅ **Idempotent product creation** with duplicate prevention
 
 ### Shopping Cart
+
 - ✅ Add items to cart with quantity validation
 - ✅ Update item quantities with stock validation
 - ✅ Remove items from cart
@@ -35,15 +38,18 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - ✅ Dual pricing: Both kobo (unit price) and naira values
 
 ### Authentication & Authorization
+
 - ✅ JWT-based authentication
 - ✅ User registration and login
 - ✅ Protected routes for cart and product management
 - ✅ **Secure logout with token blacklisting** using Redis
 
 ### API Documentation
+
 - ✅ Complete Swagger/OpenAPI documentation
 - ✅ Interactive API explorer at `/api/swagger`
 - ✅ Documentation json at `/api/swagger/json`
+
 
 ## 🛠 Tech Stack
 
@@ -66,6 +72,7 @@ The application uses a MySQL database with the following entity relationship dia
 ![Database ERD](docs/images/assessment-erd.png)
 
 ### Key Entities:
+
 - **User**: Manages user authentication and profile data
 - **UserSession**: Tracks active user sessions with refresh tokens
 - **Product**: Product catalog with pricing and stock level
@@ -76,10 +83,11 @@ The application uses a MySQL database with the following entity relationship dia
 
 ## 📋 Prerequisites
 
-- Node.js (v18 or later)
-- MySQL (v8.0 or later)
-- Redis 
+- Node.js (v20 or later)
+- MySQL
+- Redis
 - yarn (npm can be used too, but will generate new package-lock.json)
+
 
 ## 🚀 Quick Start
 
@@ -154,12 +162,14 @@ Visit `http://localhost:3000/api/swagger` for the interactive Swagger documentat
 Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be used with tools like Postman.
 
 ### Authentication Endpoints
+
 - `POST /auth/register` - Register a new user
 - `POST /auth/login` - Login user
 - `POST /auth/refresh-token` - Refresh user's access token
 - `POST /auth/logout` - Logout user, invalidate session and access token
 
 ### Product Endpoints
+
 - `GET /products` - List products (public)
 - `GET /products/my-products` - Get authenticated user's products
 - `POST /products` - Create product (authenticated)
@@ -168,18 +178,22 @@ Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be 
 - `DELETE /products/:id` - Delete product (owner only)
 
 ### Cart Endpoints
+
 - `GET /cart` - Get user's cart
 - `POST /cart` - Add item to cart
 - `PUT /cart/:productId` - Update item quantity
 - `DELETE /cart/:productId` - Remove item from cart
 
 ### Categories Endpoints
+
 - `GET /categories` - Get all categories in the system
 
 ## 🏗 Architecture & Design Decisions
 
 ### SKU Generation Strategy
+
 Auto-generated SKUs using category prefix + user ID segment + random component from a ulid:
+
 ```
 Format: {CATEGORY_PREFIX}-{USER_SEGMENT}-{RANDOM}
 Example: ELEC-0FEG-VHD8TK
@@ -192,12 +206,14 @@ Example: ELEC-0FEG-VHD8TK
 3. **User Isolation**: Users can only modify their own products and cart
 
 ### Error Handling Strategy
+
 - Consistent error response format
 - Proper HTTP status codes
 - Detailed error messages for development
 - Sanitized errors for production
 
 ### Performance Considerations
+
 - Database indexes on frequently queried fields
 - Pagination for large datasets
 - Efficient Prisma queries with selective field inclusion
@@ -206,10 +222,12 @@ Example: ELEC-0FEG-VHD8TK
 ### Currency Handling
 
 The system handles Nigerian Naira (NGN) with dual pricing:
+
 - **Unit Price**: Stored in kobo (smallest currency unit) for precision
 - **Display Price**: Converted to naira for user-friendly display
 
 Example:
+
 ```json
 {
   "price": 999.99,
@@ -227,7 +245,6 @@ Example:
 - Input validation and sanitization
 - Helmet security headers
 - Environment variable protection
-
 
 ### Idempotency
 
@@ -254,6 +271,14 @@ curl -X POST /api/v1/products \
   }'
 ```
 
+### Logging
+
+- **Log Levels**: Debug, Info, Warn, Error
+- **Log Output**: Console (using Winston logger)
+- **Query Log**: All queries are logged in development
+![Production Logs](docs/images/production-log.png)
+
+
 ## 📂 Project Structure
 
 ```
@@ -269,6 +294,7 @@ src/
 └── validations/    # Joi validation schemas
 ```
 
+
 ## 🧪 Testing
 
 ```bash
@@ -278,6 +304,7 @@ yarn test
 # Generate coverage report
 yarn test:coverage
 ```
+
 ### Test Results
 
 The application maintains high test coverage across all modules:
@@ -295,6 +322,7 @@ The application maintains high test coverage across all modules:
 ### Test Coverage
 
 The test suite includes:
+
 - **Unit Tests**: Service layer business logic
 - **Integration Tests**: Full API endpoint testing
 - **Authentication Tests**: Login, registration, refresh token and logout
@@ -330,15 +358,18 @@ The test suite includes:
    - **Chosen**: Express for simplicity and flexibility
    - **Tradeoff**: Hard to implement patterns. Less inbuilt integration. Lot of yaml code for swagger docs. If project is to be improved with order/payment flow, I will go with Nest.
 
+
 ## 🔮 Future Enhancements
 
 - [ ] Inventory reservations during checkout
 - [ ] Multiple currencies support
 - [ ] Product variants (size, color, etc.)
-- [ ] Categories hierarchy 
+- [ ] Categories hierarchy
 - [ ] Real-time stock updates via WebSockets
 - [ ] Caching layer with Redis
 - [ ] Extend idempotency to other endpoints, especially payment related endpoints when implemented
-
+- [ ] Add precommit hooks for linting, testing, and code formatting
+- [ ] Improve logging by saving to files and doing rotation
+- [ ] Do testing with various Node.js versions and add nodeEngine to package.json
 
 **Built with ❤️ for the Paystack Future Stack Program**

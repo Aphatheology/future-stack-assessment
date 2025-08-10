@@ -4,16 +4,17 @@ import { UlidHelper, EntityPrefix } from '../../src/utils/ulid.helper';
 import { prisma } from '../setup';
 
 import app from '../../src/app';
+import { Product, Category, User } from '@prisma/client';
 
 describe('Cart API Integration Tests', () => {
   let testApp: Express;
   let authToken: string;
   let authToken2: string;
-  let testUser: any;
-  let testUser2: any;
-  let testCategory: any;
-  let testProduct: any;
-  let testProduct2: any;
+  let testUser: User;
+  let testUser2: User;
+  let testCategory: Category;
+  let testProduct: Product;
+  let testProduct2: Product;
 
   beforeAll(async () => {
     testApp = app;
@@ -28,17 +29,33 @@ describe('Cart API Integration Tests', () => {
       .post('/api/v1/auth/register')
       .send({ name: 'Cart Test User', email: email1, password: 'P@ssw0rd123' });
 
-    const regResp2 = await request(testApp)
-      .post('/api/v1/auth/register')
-      .send({ name: 'Cart Test User 2', email: email2, password: 'P@ssw0rd123' });
+    const regResp2 = await request(testApp).post('/api/v1/auth/register').send({
+      name: 'Cart Test User 2',
+      email: email2,
+      password: 'P@ssw0rd123',
+    });
 
-    testUser = { id: regResp1.body.data.id, name: 'Cart Test User', email: email1 };
-    testUser2 = { id: regResp2.body.data.id, name: 'Cart Test User 2', email: email2 };
+    testUser = {
+      id: regResp1.body.data.id,
+      name: 'Cart Test User',
+      email: email1,
+      password: 'hashed_password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    testUser2 = {
+      id: regResp2.body.data.id,
+      name: 'Cart Test User 2',
+      email: email2,
+      password: 'hashed_password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
     const cookieArr1 = regResp1.headers['set-cookie'] as unknown as string[];
     const cookieArr2 = regResp2.headers['set-cookie'] as unknown as string[];
-    const cookie1 = cookieArr1.find(c=>c.includes('accessToken')) || '';
-    const cookie2 = cookieArr2.find(c=>c.includes('accessToken')) || '';
+    const cookie1 = cookieArr1.find(c => c.includes('accessToken')) || '';
+    const cookie2 = cookieArr2.find(c => c.includes('accessToken')) || '';
     authToken = cookie1.split('=')[1].split(';')[0];
     authToken2 = cookie2.split('=')[1].split(';')[0];
 
@@ -98,9 +115,7 @@ describe('Cart API Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      await request(testApp)
-        .get('/api/v1/carts')
-        .expect(401);
+      await request(testApp).get('/api/v1/carts').expect(401);
     });
   });
 
@@ -156,7 +171,9 @@ describe('Cart API Integration Tests', () => {
         })
         .expect(400);
 
-      expect(response.body.message).toContain('You cannot add your own products to your cart');
+      expect(response.body.message).toContain(
+        'You cannot add your own products to your cart'
+      );
     });
 
     it('should reject quantity exceeding stock', async () => {

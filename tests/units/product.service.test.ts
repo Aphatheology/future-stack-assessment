@@ -2,13 +2,14 @@ import ProductService from '../../src/services/product.service';
 import { prisma } from '../setup';
 import { UlidHelper, EntityPrefix } from '../../src/utils/ulid.helper';
 import { hashPassword } from '../../src/utils/password';
+import { User, Category, Product } from '@prisma/client';
 
 describe('ProductService', () => {
   let productService: ProductService;
-  let testUser: any;
-  let testUser2: any;
-  let testCategory: any;
-  let testCategory2: any;
+  let testUser: User;
+  let testUser2: User;
+  let testCategory: Category;
+  let testCategory2: Category;
 
   beforeEach(async () => {
     productService = new ProductService();
@@ -64,7 +65,11 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto, 'test-key-1');
+      const product = await productService.createProduct(
+        testUser.id,
+        createDto,
+        'test-key-1'
+      );
 
       expect(product).toMatchObject({
         id: expect.stringMatching(/^prd_/),
@@ -72,7 +77,7 @@ describe('ProductService', () => {
         name: createDto.name,
         description: createDto.description,
         price: createDto.price,
-        unitPrice: createDto.price*100,
+        unitPrice: createDto.price * 100,
         currency: 'NGN',
         stockLevel: createDto.stockLevel,
         createdBy: testUser.name,
@@ -102,8 +107,16 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product1 = await productService.createProduct(testUser.id, createDto1, 'test-key-1');
-      const product2 = await productService.createProduct(testUser.id, createDto2, 'test-key-2');
+      const product1 = await productService.createProduct(
+        testUser.id,
+        createDto1,
+        'test-key-1'
+      );
+      const product2 = await productService.createProduct(
+        testUser.id,
+        createDto2,
+        'test-key-2'
+      );
 
       const prefix = 'ELEC-';
       expect(product1.sku.startsWith(prefix)).toBe(true);
@@ -120,7 +133,11 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto, 'test-key-3');
+      const product = await productService.createProduct(
+        testUser.id,
+        createDto,
+        'test-key-3'
+      );
 
       expect(product.unitPrice).toBe(12345);
       expect(product.price).toBe(123.45);
@@ -130,7 +147,7 @@ describe('ProductService', () => {
   });
 
   describe('getProductById', () => {
-    let testProduct: any;
+    let testProduct: Product;
 
     beforeEach(async () => {
       testProduct = await prisma.product.create({
@@ -165,11 +182,15 @@ describe('ProductService', () => {
 
     it('should throw error for non-existent ID', async () => {
       const nonExistentId = UlidHelper.generate(EntityPrefix.PRODUCT);
-      await expect(productService.getProductById(nonExistentId)).rejects.toThrow('Product not found');
+      await expect(
+        productService.getProductById(nonExistentId)
+      ).rejects.toThrow('Product not found');
     });
 
     it('should throw error for invalid ID format', async () => {
-      await expect(productService.getProductById('invalid-id')).rejects.toThrow();
+      await expect(
+        productService.getProductById('invalid-id')
+      ).rejects.toThrow();
     });
   });
 
@@ -181,7 +202,7 @@ describe('ProductService', () => {
           sku: 'LAPTOP-001',
           name: 'Gaming Laptop',
           description: 'High performance gaming laptop',
-          price: 1500.00,
+          price: 1500.0,
           unitPrice: BigInt(150000),
           stockLevel: 5,
           createdBy: testUser.id,
@@ -192,7 +213,7 @@ describe('ProductService', () => {
           sku: 'PHONE-001',
           name: 'Smartphone',
           description: 'Latest smartphone model',
-          price: 800.00,
+          price: 800.0,
           unitPrice: BigInt(80000),
           stockLevel: 0,
           createdBy: testUser.id,
@@ -302,7 +323,7 @@ describe('ProductService', () => {
   });
 
   describe('updateProduct', () => {
-    let testProduct: any;
+    let testProduct: Product;
 
     beforeEach(async () => {
       testProduct = await prisma.product.create({
@@ -393,7 +414,7 @@ describe('ProductService', () => {
   });
 
   describe('deleteProduct', () => {
-    let testProduct: any;
+    let testProduct: Product;
 
     beforeEach(async () => {
       testProduct = await prisma.product.create({
@@ -450,7 +471,11 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto, 'test-key-4');
+      const product = await productService.createProduct(
+        testUser.id,
+        createDto,
+        'test-key-4'
+      );
 
       expect(product.price).toBe(999999.99);
       expect(product.unitPrice).toBe(99999999); // In kobo
@@ -465,7 +490,11 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto, 'test-key-5');
+      const product = await productService.createProduct(
+        testUser.id,
+        createDto,
+        'test-key-5'
+      );
 
       expect(product.price).toBe(0);
       expect(product.unitPrice).toBe(0);
@@ -480,7 +509,11 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto, 'test-key-6');
+      const product = await productService.createProduct(
+        testUser.id,
+        createDto,
+        'test-key-6'
+      );
 
       expect(product.stockLevel).toBe(0);
     });
@@ -498,8 +531,16 @@ describe('ProductService', () => {
 
       const idempotencyKey = 'test-key-123';
 
-      const product1 = await productService.createProduct(testUser.id, createDto, idempotencyKey);
-      const product2 = await productService.createProduct(testUser.id, createDto, idempotencyKey);
+      const product1 = await productService.createProduct(
+        testUser.id,
+        createDto,
+        idempotencyKey
+      );
+      const product2 = await productService.createProduct(
+        testUser.id,
+        createDto,
+        idempotencyKey
+      );
 
       expect(product1.id).toBe(product2.id);
       expect(product1.sku).toBe(product2.sku);
@@ -518,7 +559,9 @@ describe('ProductService', () => {
 
       await expect(
         productService.createProduct(testUser.id, createDto, 'key-2')
-      ).rejects.toThrow('A product with the same name and price already exists');
+      ).rejects.toThrow(
+        'A product with the same name and price already exists'
+      );
     });
 
     it('should allow different users to create products with same name and price', async () => {
@@ -530,8 +573,16 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product1 = await productService.createProduct(testUser.id, createDto, 'key-1');
-      const product2 = await productService.createProduct(testUser2.id, createDto, 'key-2');
+      const product1 = await productService.createProduct(
+        testUser.id,
+        createDto,
+        'key-1'
+      );
+      const product2 = await productService.createProduct(
+        testUser2.id,
+        createDto,
+        'key-2'
+      );
 
       expect(product1.id).not.toBe(product2.id);
       expect(product1.sku).not.toBe(product2.sku);
@@ -554,8 +605,16 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product1 = await productService.createProduct(testUser.id, createDto1, 'key-1');
-      const product2 = await productService.createProduct(testUser.id, createDto2, 'key-2');
+      const product1 = await productService.createProduct(
+        testUser.id,
+        createDto1,
+        'key-1'
+      );
+      const product2 = await productService.createProduct(
+        testUser.id,
+        createDto2,
+        'key-2'
+      );
 
       expect(product1.id).not.toBe(product2.id);
       expect(product1.price).toBe(99.99);
@@ -579,8 +638,16 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product1 = await productService.createProduct(testUser.id, createDto1, 'key-1');
-      const product2 = await productService.createProduct(testUser.id, createDto2, 'key-2');
+      const product1 = await productService.createProduct(
+        testUser.id,
+        createDto1,
+        'key-1'
+      );
+      const product2 = await productService.createProduct(
+        testUser.id,
+        createDto2,
+        'key-2'
+      );
 
       expect(product1.id).not.toBe(product2.id);
       expect(product1.name).toBe('Test Product 1');

@@ -11,7 +11,8 @@ const idempotencyKeySchema = Joi.string()
   .messages({
     'string.empty': 'Idempotency key cannot be empty',
     'string.max': 'Idempotency key cannot exceed 255 characters',
-    'string.pattern.base': 'Idempotency key can only contain alphanumeric characters, hyphens, and underscores'
+    'string.pattern.base':
+      'Idempotency key can only contain alphanumeric characters, hyphens, and underscores',
   });
 
 export const validateIdempotencyKey = (req: Request, res: Response, next: NextFunction): void => {

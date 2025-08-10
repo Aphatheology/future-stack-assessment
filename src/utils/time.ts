@@ -14,4 +14,4 @@ export const parseTimeToMs = (timeString: string): number => {
     default:
       return parseInt(timeString, 10) * 1000;
   }
-}; 
+};

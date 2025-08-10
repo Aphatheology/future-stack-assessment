@@ -31,7 +31,9 @@ const envVarsSchema = Joi.object<EnvVars>({
   REDIS_PASSWORD: Joi.string().optional(),
 }).unknown();
 
-const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
+const { value: envVars, error } = envVarsSchema
+  .prefs({ errors: { label: 'key' } })
+  .validate(process.env);
 
 if (error) {
   throw new Error(`Config validation error: ${error.message}`);
@@ -41,17 +43,17 @@ const getServerUrl = (req?: Request): string => {
   if (req) {
     let protocol = req.protocol;
     const host = req.get('host');
-    
+
     if (req.get('x-forwarded-proto')) {
       const forwardedProto = req.get('x-forwarded-proto');
       if (forwardedProto) {
         protocol = forwardedProto;
       }
     }
-    
+
     return `${protocol}://${host}`;
   }
-  
+
   const port = envVars.PORT || '3000';
   return `http://localhost:${port}`;
 };

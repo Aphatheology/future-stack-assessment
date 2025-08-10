@@ -1,13 +1,10 @@
-import { Router } from "express";
+import { Router } from 'express';
 import * as userController from '../controllers/user.controller';
 import { authenticate } from '../middlewares/authenticate';
 
-
 const router = Router();
 
-router
-  .route("/profile")
-  .get(authenticate, userController.getProfile);
+router.route('/profile').get(authenticate, userController.getProfile);
 
 export default router;
 
@@ -17,7 +14,6 @@ export default router;
  *   name: User
  *   description: User profile endpoints
  */
-
 
 /**
  * @swagger

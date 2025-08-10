@@ -2,14 +2,15 @@ import CartService from '../../src/services/cart.service';
 import { prisma } from '../setup';
 import ApiError from '../../src/utils/apiError';
 import { UlidHelper, EntityPrefix } from '../../src/utils/ulid.helper';
+import { User, Category, Product } from '@prisma/client';
 
 describe('CartService', () => {
   let cartService: CartService;
-  let testUser: any;
-  let testUser2: any;
-  let testCategory: any;
-  let testProduct: any;
-  let testProduct2: any;
+  let testUser: User;
+  let testUser2: User;
+  let testCategory: Category;
+  let testProduct: Product;
+  let testProduct2: Product;
 
   beforeEach(async () => {
     cartService = new CartService();
@@ -197,7 +198,9 @@ describe('CartService', () => {
       const cart = await cartService.updateItemQuantity(
         testUser.id,
         testProduct.id,
-        { quantity: 5 }
+        {
+          quantity: 5,
+        }
       );
 
       expect(cart.items[0].quantity).toBe(5);

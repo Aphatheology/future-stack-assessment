@@ -13,11 +13,11 @@ export default class CartService {
     });
 
     cart ??= await prisma.cart.create({
-        data: {
-          id: UlidHelper.generate(EntityPrefix.CART),
-          createdBy: userId,
-        },
-      });
+      data: {
+        id: UlidHelper.generate(EntityPrefix.CART),
+        createdBy: userId,
+      },
+    });
     return cart;
   }
 
@@ -41,7 +41,7 @@ export default class CartService {
   private buildCartView(cartId: string, items: CartItemWithProduct[]): CartView {
     const transformedItems = this.transformCartItems(items);
     const subtotalKobo = transformedItems.reduce((sum, item) => sum + item.itemTotalKobo, 0);
-    
+
     return {
       id: cartId,
       items: transformedItems,
@@ -52,7 +52,7 @@ export default class CartService {
 
   async getCart(userId: string): Promise<CartView> {
     const cart = await this.getOrCreateUserCart(userId);
-    
+
     const items = await prisma.cartItem.findMany({
       where: { cartId: cart.id },
       include: { product: true },
@@ -78,13 +78,10 @@ export default class CartService {
     }
 
     if (product.createdBy === userId) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        'You cannot add your own products to your cart'
-      );
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'You cannot add your own products to your cart');
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       const existingCartItem = await tx.cartItem.findUnique({
         where: {
           cartId_productId: {
@@ -133,7 +130,11 @@ export default class CartService {
     return this.buildCartView(cart.id, updatedItems as CartItemWithProduct[]);
   }
 
-  async updateItemQuantity(userId: string, productId: string, dto: UpdateCartItemDto): Promise<CartView> {
+  async updateItemQuantity(
+    userId: string,
+    productId: string,
+    dto: UpdateCartItemDto
+  ): Promise<CartView> {
     const { quantity } = dto;
 
     if (quantity < 1) {

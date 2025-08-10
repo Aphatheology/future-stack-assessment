@@ -5,19 +5,14 @@ import { prisma } from '../setup';
 import { hashPassword } from '../../src/utils/password';
 import AuthService from '../../src/services/auth.service';
 import app from '../../src/app';
+import { User } from '@prisma/client';
 
 describe('Auth API Integration Tests', () => {
   let testApp: Express;
-  let testUser: any;
+  let testUser: User;
 
   beforeAll(async () => {
     testApp = app;
-  });
-
-  afterEach(async () => {
-    await prisma.cart.deleteMany();
-    await prisma.userSession.deleteMany();
-    await prisma.user.deleteMany();
   });
 
   describe('POST /api/v1/auth/register', () => {
@@ -50,8 +45,12 @@ describe('Auth API Integration Tests', () => {
 
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(cookies.some((cookie: string) => cookie.includes('accessToken'))).toBe(true);
-      expect(cookies.some((cookie: string) => cookie.includes('refreshToken'))).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('accessToken'))
+      ).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('refreshToken'))
+      ).toBe(true);
 
       const createdUser = await prisma.user.findUnique({
         where: { email: registerData.email },
@@ -144,7 +143,9 @@ describe('Auth API Integration Tests', () => {
 
       // Name should be sanitized
       expect(response.body.data.name).not.toContain('<script>');
-      expect(response.body.data.name).toBe('Test scriptalert("xss")/script User');
+      expect(response.body.data.name).toBe(
+        'Test scriptalert("xss")/script User'
+      );
     });
 
     it('should respect rate limiting', async () => {
@@ -155,17 +156,19 @@ describe('Auth API Integration Tests', () => {
       };
 
       // Make multiple rapid requests
-      const promises = Array(12).fill(0).map((_, i) => 
-        request(testApp)
-          .post('/api/v1/auth/register')
-          .send({
-            ...registerData,
-            email: `test${i}@example.com`,
-          })
-      );
+      const promises = Array(12)
+        .fill(0)
+        .map((_, i) =>
+          request(testApp)
+            .post('/api/v1/auth/register')
+            .send({
+              ...registerData,
+              email: `test${i}@example.com`,
+            })
+        );
 
       const responses = await Promise.all(promises);
-      
+
       // Some requests should be rate limited
       const rateLimitedResponses = responses.filter(r => r.status === 429);
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
@@ -211,8 +214,12 @@ describe('Auth API Integration Tests', () => {
       // Should set cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(cookies.some((cookie: string) => cookie.includes('accessToken'))).toBe(true);
-      expect(cookies.some((cookie: string) => cookie.includes('refreshToken'))).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('accessToken'))
+      ).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('refreshToken'))
+      ).toBe(true);
     });
 
     it('should return 401 for non-existent email', async () => {
@@ -270,14 +277,12 @@ describe('Auth API Integration Tests', () => {
       };
 
       // Make multiple failed login attempts
-      const promises = Array(12).fill(0).map(() => 
-        request(testApp)
-          .post('/api/v1/auth/login')
-          .send(loginData)
-      );
+      const promises = Array(12)
+        .fill(0)
+        .map(() => request(testApp).post('/api/v1/auth/login').send(loginData));
 
       const responses = await Promise.all(promises);
-      
+
       // Some requests should be rate limited
       const rateLimitedResponses = responses.filter(r => r.status === 429);
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
@@ -312,8 +317,12 @@ describe('Auth API Integration Tests', () => {
       // Should set new cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(cookies.some((cookie: string) => cookie.includes('accessToken'))).toBe(true);
-      expect(cookies.some((cookie: string) => cookie.includes('refreshToken'))).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('accessToken'))
+      ).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('refreshToken'))
+      ).toBe(true);
     });
 
     it('should return 401 for missing refresh token', async () => {
@@ -362,8 +371,12 @@ describe('Auth API Integration Tests', () => {
       // Should clear cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(cookies.some((cookie: string) => cookie.includes('accessToken=;'))).toBe(true);
-      expect(cookies.some((cookie: string) => cookie.includes('refreshToken=;'))).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('accessToken=;'))
+      ).toBe(true);
+      expect(
+        cookies.some((cookie: string) => cookie.includes('refreshToken=;'))
+      ).toBe(true);
 
       // Refresh token should no longer work
       await request(testApp)
@@ -414,9 +427,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should reject protected route without token', async () => {
-      const response = await request(testApp)
-        .get('/api/v1/carts')
-        .expect(401);
+      const response = await request(testApp).get('/api/v1/carts').expect(401);
 
       expect(response.body.status).toBe('error');
       expect(response.body.message).toContain('token');

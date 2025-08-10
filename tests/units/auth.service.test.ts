@@ -4,18 +4,15 @@ import { UlidHelper, EntityPrefix } from '../../src/utils/ulid.helper';
 import { hashPassword } from '../../src/utils/password';
 import jwt from 'jsonwebtoken';
 import config from '../../src/config/env';
+import { RefreshTokenPayload, TokenPayload } from 'utils/jwt';
+import { User } from '@prisma/client';
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let testUser: any;
+  let testUser: User;
 
   beforeEach(async () => {
     authService = new AuthService();
-  });
-
-  afterEach(async () => {
-    await prisma.userSession.deleteMany();
-    await prisma.user.deleteMany();
   });
 
   describe('isEmailTaken', () => {
@@ -84,10 +81,12 @@ describe('AuthService', () => {
 
       await authService.register(registerDto);
 
-      await expect(authService.register({
-        ...registerDto,
-        name: 'Another User',
-      })).rejects.toThrow('Email already registered');
+      await expect(
+        authService.register({
+          ...registerDto,
+          name: 'Another User',
+        })
+      ).rejects.toThrow('Email already registered');
     });
 
     it('should generate valid JWT tokens', async () => {
@@ -100,11 +99,17 @@ describe('AuthService', () => {
       const result = await authService.register(registerDto);
 
       // Verify access token is valid
-      const accessPayload = jwt.verify(result.accessToken, config.jwt.accessTokenSecret) as any;
+      const accessPayload = jwt.verify(
+        result.accessToken,
+        config.jwt.accessTokenSecret
+      ) as TokenPayload;
       expect(accessPayload.userId).toBe(result.user.id);
 
       // Verify refresh token is valid
-      const refreshPayload = jwt.verify(result.refreshToken, config.jwt.refreshTokenSecret) as any;
+      const refreshPayload = jwt.verify(
+        result.refreshToken,
+        config.jwt.refreshTokenSecret
+      ) as RefreshTokenPayload;
       expect(refreshPayload.userId).toBe(result.user.id);
     });
   });
@@ -149,7 +154,9 @@ describe('AuthService', () => {
         password: 'password123',
       };
 
-      await expect(authService.login(loginDto)).rejects.toThrow('Incorrect email or password');
+      await expect(authService.login(loginDto)).rejects.toThrow(
+        'Incorrect email or password'
+      );
     });
 
     it('should throw error for incorrect password', async () => {
@@ -158,7 +165,9 @@ describe('AuthService', () => {
         password: 'wrongpassword',
       };
 
-      await expect(authService.login(loginDto)).rejects.toThrow('Incorrect email or password');
+      await expect(authService.login(loginDto)).rejects.toThrow(
+        'Incorrect email or password'
+      );
     });
 
     it('should create new session on each login', async () => {
@@ -238,7 +247,9 @@ describe('AuthService', () => {
     it('should throw error for invalid refresh token', async () => {
       const refreshDto = { refreshToken: 'invalid-token' };
 
-      await expect(authService.refreshToken(refreshDto)).rejects.toThrow('Invalid refresh token');
+      await expect(authService.refreshToken(refreshDto)).rejects.toThrow(
+        'Invalid refresh token'
+      );
     });
 
     it('should throw error for expired session', async () => {
@@ -250,7 +261,9 @@ describe('AuthService', () => {
 
       const refreshDto = { refreshToken };
 
-      await expect(authService.refreshToken(refreshDto)).rejects.toThrow('Invalid refresh token');
+      await expect(authService.refreshToken(refreshDto)).rejects.toThrow(
+        'Invalid refresh token'
+      );
     });
 
     it('should throw error for non-existent session', async () => {
@@ -259,7 +272,9 @@ describe('AuthService', () => {
 
       const refreshDto = { refreshToken };
 
-      await expect(authService.refreshToken(refreshDto)).rejects.toThrow('Invalid refresh token');
+      await expect(authService.refreshToken(refreshDto)).rejects.toThrow(
+        'Invalid refresh token'
+      );
     });
 
     it('should invalidate old refresh token and create new one', async () => {
@@ -268,10 +283,14 @@ describe('AuthService', () => {
       const result = await authService.refreshToken(refreshDto);
 
       // Old refresh token should no longer work
-      await expect(authService.refreshToken({ refreshToken })).rejects.toThrow();
+      await expect(
+        authService.refreshToken({ refreshToken })
+      ).rejects.toThrow();
 
       // New refresh token should work
-      const secondResult = await authService.refreshToken({ refreshToken: result.refreshToken });
+      const secondResult = await authService.refreshToken({
+        refreshToken: result.refreshToken,
+      });
       expect(secondResult).toHaveProperty('accessToken');
     });
   });
@@ -298,7 +317,9 @@ describe('AuthService', () => {
       refreshToken = jwt.sign(
         { userId: testUser.id, sessionId },
         config.jwt.refreshTokenSecret,
-        { expiresIn: '7d' },
+        {
+          expiresIn: '7d',
+        }
       );
 
       await prisma.userSession.create({
@@ -316,14 +337,16 @@ describe('AuthService', () => {
 
       await expect(authService.logout(logoutDto)).resolves.not.toThrow();
 
-      const session = await prisma.userSession.findUnique({ where: { id: sessionId } });
+      const session = await prisma.userSession.findUnique({
+        where: { id: sessionId },
+      });
       expect(session?.deleted).toBe(true);
     });
 
     it('should throw error for invalid refresh token', async () => {
-      await expect(authService.logout({ refreshToken: 'invalid-token' })).rejects.toThrow('Invalid refresh token');
+      await expect(
+        authService.logout({ refreshToken: 'invalid-token' })
+      ).rejects.toThrow('Invalid refresh token');
     });
   });
-
-
 });
