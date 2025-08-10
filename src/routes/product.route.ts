@@ -24,7 +24,7 @@ router
 router
   .route('/:productId')
   .get(validate(productValidation.getProduct), productController.getProduct)
-  .put(authenticate, validate(productValidation.updateProduct), productController.updateProduct)
+  .patch(authenticate, validate(productValidation.updateProduct), productController.updateProduct)
   .delete(authenticate, validate(productValidation.deleteProduct), productController.deleteProduct);
 
 export default router;
@@ -397,7 +397,7 @@ export default router;
 /**
  * @swagger
  * /products/{productId}:
- *   put:
+ *   patch:
  *     summary: Update a product (SKU regenerated if category changes)
  *     tags: [Products]
  *     security:

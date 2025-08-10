@@ -13,7 +13,7 @@ router
 
 router
   .route('/:productId')
-  .put(authenticate, validate(cartValidation.updateItem), cartController.updateItem)
+  .patch(authenticate, validate(cartValidation.updateItem), cartController.updateItem)
   .delete(authenticate, validate(cartValidation.removeItem), cartController.removeItem);
 
 export default router;
@@ -143,7 +143,7 @@ export default router;
 /**
  * @swagger
  * /carts/{productId}:
- *   put:
+ *   patch:
  *     summary: Update quantity of a cart item
  *     description: Update the quantity of an item in your cart.
  *     tags: [Cart]

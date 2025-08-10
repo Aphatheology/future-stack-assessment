@@ -48,6 +48,7 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - ✅ Complete Swagger/OpenAPI documentation
 - ✅ Interactive API explorer at `/api/swagger`
 - ✅ Documentation json at `/api/swagger/json`
+- ✅ Postman Documentation at `https://documenter.getpostman.com/view/13406320/2sB3BEnAL8`
 
 ## 🛠 Tech Stack
 
@@ -58,7 +59,7 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - **Cache**: Redis (for now, it is used mainly for token blacklisting)
 - **Authentication**: JWT
 - **Validation**: Joi
-- **Documentation**: Swagger/OpenAPI
+- **Documentation**: Swagger/OpenAPI and Postman
 - **Logging**: Winston
 - **Security**: Helmet, CORS
 
@@ -161,6 +162,7 @@ Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be 
 
 For deployed documentation: https://future-stack-assessment.onrender.com/api/swagger/
 Or `https://future-stack-assessment.onrender.com/api/swagger/json` for the JSON version.
+Or the postman documentation at `https://documenter.getpostman.com/view/13406320/2sB3BEnAL8`
 
 ### Authentication Endpoints
 
