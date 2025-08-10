@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
@@ -17,7 +17,7 @@ app.set('trust proxy', true);
 app.use(helmet());
 app.use(apiLimiter);
 
-if (config.env !== "test") {
+if (config.env !== 'test') {
   app.use(morgan.successHandler);
   app.use(morgan.errorHandler);
 }
@@ -32,15 +32,15 @@ app.get('/api/swagger/json', (req: Request, res: Response) => {
 });
 
 app.use('/api/swagger', swaggerUi.serve);
-app.get('/api/swagger', (req: Request, res: Response, next: any) => {
+app.get('/api/swagger', (req: Request, res: Response, next: NextFunction) => {
   const specs = createSwaggerSpec(req);
   swaggerUi.setup(specs)(req, res, next);
 });
 
-app.use("/api/v1", router);
+app.use('/api/v1', router);
 
-app.get("/", (req: Request, res: Response) => {
-  sendSuccess(res, StatusCodes.OK, 'Welcome to Mustapha\'s Paystack Future Stack Assessment');
+app.get('/', (req: Request, res: Response) => {
+  sendSuccess(res, StatusCodes.OK, "Welcome to Mustapha's Paystack Future Stack Assessment");
 });
 
 app.get('/health', (req: Request, res: Response) => {
@@ -48,12 +48,12 @@ app.get('/health', (req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: config.env
+    environment: config.env,
   };
   sendSuccess(res, StatusCodes.OK, 'Health check successful', healthCheck);
 });
 
-app.use("*error", (req: Request, res: Response) => {
+app.use('*error', (req: Request, res: Response) => {
   sendError(res, StatusCodes.NOT_FOUND, 'Route Not found');
 });
 
