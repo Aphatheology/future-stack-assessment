@@ -92,6 +92,7 @@ describe('Product API Integration Tests', () => {
     await prisma.category.deleteMany();
     await prisma.userSession.deleteMany();
     await prisma.user.deleteMany();
+    await prisma.idempotencyKey.deleteMany();
   });
 
   describe('POST /api/v1/products', () => {
@@ -107,6 +108,7 @@ describe('Product API Integration Tests', () => {
       const response = await request(testApp)
         .post('/api/v1/products')
         .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'test-key-1')
         .send(productData)
         .expect(201);
 
@@ -169,6 +171,7 @@ describe('Product API Integration Tests', () => {
       const response = await request(testApp)
         .post('/api/v1/products')
         .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'test-key-3')
         .send(productData)
         .expect(400);
 
@@ -190,12 +193,134 @@ describe('Product API Integration Tests', () => {
       const response = await request(testApp)
         .post('/api/v1/products')
         .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'test-key-2')
         .send(productData)
         .expect(201);
 
       // Name should be sanitized
       expect(response.body.data.name).not.toContain('<script>');
       expect(response.body.data.name).toBe('Gaming scriptalert("xss")/script Laptop');
+    });
+
+    it('should require X-Idempotency-Key header', async () => {
+      const productData = {
+        name: 'Gaming Laptop',
+        description: 'High performance gaming laptop',
+        price: 1500.99,
+        stockLevel: 5,
+        categoryId: testCategory.id,
+      };
+
+      const response = await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .send(productData)
+        .expect(400);
+
+      expect(response.body.status).toBe('error');
+      expect(response.body.message).toBe('X-Idempotency-Key header is required');
+    });
+
+    it('should return same product for duplicate idempotency key', async () => {
+      const productData = {
+        name: 'Gaming Laptop',
+        description: 'High performance gaming laptop',
+        price: 1500.99,
+        stockLevel: 5,
+        categoryId: testCategory.id,
+      };
+
+      const idempotencyKey = 'test-key-123';
+
+      const response1 = await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', idempotencyKey)
+        .send(productData)
+        .expect(201);
+
+      const response2 = await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', idempotencyKey)
+        .send(productData)
+        .expect(201);
+
+      expect(response1.body.data.id).toBe(response2.body.data.id);
+      expect(response1.body.data.sku).toBe(response2.body.data.sku);
+    });
+
+    it('should reject invalid idempotency key format', async () => {
+      const productData = {
+        name: 'Gaming Laptop',
+        description: 'High performance gaming laptop',
+        price: 1500.99,
+        stockLevel: 5,
+        categoryId: testCategory.id,
+      };
+
+      const response = await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'invalid key with spaces!')
+        .send(productData)
+        .expect(400);
+
+      expect(response.body.status).toBe('error');
+      expect(response.body.message).toContain('Idempotency key can only contain alphanumeric characters');
+    });
+
+    it('should prevent duplicate products with same name and price', async () => {
+      const productData = {
+        name: 'Gaming Laptop',
+        description: 'High performance gaming laptop',
+        price: 1500.99,
+        stockLevel: 5,
+        categoryId: testCategory.id,
+      };
+
+      await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'key-1')
+        .send(productData)
+        .expect(201);
+
+      const response = await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'key-2')
+        .send(productData)
+        .expect(409);
+
+      expect(response.body.status).toBe('error');
+      expect(response.body.message).toBe('A product with the same name and price already exists');
+    });
+
+    it('should allow different users to create products with same name and price', async () => {
+      const productData = {
+        name: 'Gaming Laptop',
+        description: 'High performance gaming laptop',
+        price: 1500.99,
+        stockLevel: 5,
+        categoryId: testCategory.id,
+      };
+
+      await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken}`])
+        .set('X-Idempotency-Key', 'key-1')
+        .send(productData)
+        .expect(201);
+
+      const response = await request(testApp)
+        .post('/api/v1/products')
+        .set('Cookie', [`accessToken=${authToken2}`])
+        .set('X-Idempotency-Key', 'key-2')
+        .send(productData)
+        .expect(201);
+
+      expect(response.body.status).toBe('success');
     });
 
     // Rate-limiting test removed as product endpoints are not limited.

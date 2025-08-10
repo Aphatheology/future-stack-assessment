@@ -51,6 +51,7 @@ describe('ProductService', () => {
     await prisma.category.deleteMany();
     await prisma.userSession.deleteMany();
     await prisma.user.deleteMany();
+    await prisma.idempotencyKey.deleteMany();
   });
 
   describe('createProduct', () => {
@@ -63,7 +64,7 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto);
+      const product = await productService.createProduct(testUser.id, createDto, 'test-key-1');
 
       expect(product).toMatchObject({
         id: expect.stringMatching(/^prd_/),
@@ -85,16 +86,24 @@ describe('ProductService', () => {
     });
 
     it('should generate unique SKU for each product', async () => {
-      const createDto = {
-        name: 'Test Product',
+      const createDto1 = {
+        name: 'Test Product 1',
         description: 'A test product description',
         price: 99.99,
         stockLevel: 10,
         categoryId: testCategory.id,
       };
 
-      const product1 = await productService.createProduct(testUser.id, createDto);
-      const product2 = await productService.createProduct(testUser.id, createDto);
+      const createDto2 = {
+        name: 'Test Product 2',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const product1 = await productService.createProduct(testUser.id, createDto1, 'test-key-1');
+      const product2 = await productService.createProduct(testUser.id, createDto2, 'test-key-2');
 
       const prefix = 'ELEC-';
       expect(product1.sku.startsWith(prefix)).toBe(true);
@@ -111,7 +120,7 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto);
+      const product = await productService.createProduct(testUser.id, createDto, 'test-key-3');
 
       expect(product.unitPrice).toBe(12345);
       expect(product.price).toBe(123.45);
@@ -441,7 +450,7 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto);
+      const product = await productService.createProduct(testUser.id, createDto, 'test-key-4');
 
       expect(product.price).toBe(999999.99);
       expect(product.unitPrice).toBe(99999999); // In kobo
@@ -456,7 +465,7 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto);
+      const product = await productService.createProduct(testUser.id, createDto, 'test-key-5');
 
       expect(product.price).toBe(0);
       expect(product.unitPrice).toBe(0);
@@ -471,9 +480,111 @@ describe('ProductService', () => {
         categoryId: testCategory.id,
       };
 
-      const product = await productService.createProduct(testUser.id, createDto);
+      const product = await productService.createProduct(testUser.id, createDto, 'test-key-6');
 
       expect(product.stockLevel).toBe(0);
+    });
+  });
+
+  describe('idempotency', () => {
+    it('should return existing product for duplicate idempotency key', async () => {
+      const createDto = {
+        name: 'Test Product',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const idempotencyKey = 'test-key-123';
+
+      const product1 = await productService.createProduct(testUser.id, createDto, idempotencyKey);
+      const product2 = await productService.createProduct(testUser.id, createDto, idempotencyKey);
+
+      expect(product1.id).toBe(product2.id);
+      expect(product1.sku).toBe(product2.sku);
+    });
+
+    it('should prevent duplicate products with same name and price for same user', async () => {
+      const createDto = {
+        name: 'Test Product',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      await productService.createProduct(testUser.id, createDto, 'key-1');
+
+      await expect(
+        productService.createProduct(testUser.id, createDto, 'key-2')
+      ).rejects.toThrow('A product with the same name and price already exists');
+    });
+
+    it('should allow different users to create products with same name and price', async () => {
+      const createDto = {
+        name: 'Test Product',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const product1 = await productService.createProduct(testUser.id, createDto, 'key-1');
+      const product2 = await productService.createProduct(testUser2.id, createDto, 'key-2');
+
+      expect(product1.id).not.toBe(product2.id);
+      expect(product1.sku).not.toBe(product2.sku);
+    });
+
+    it('should allow same user to create products with same name but different price', async () => {
+      const createDto1 = {
+        name: 'Test Product',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const createDto2 = {
+        name: 'Test Product',
+        description: 'A test product description',
+        price: 149.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const product1 = await productService.createProduct(testUser.id, createDto1, 'key-1');
+      const product2 = await productService.createProduct(testUser.id, createDto2, 'key-2');
+
+      expect(product1.id).not.toBe(product2.id);
+      expect(product1.price).toBe(99.99);
+      expect(product2.price).toBe(149.99);
+    });
+
+    it('should allow same user to create products with same price but different name', async () => {
+      const createDto1 = {
+        name: 'Test Product 1',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const createDto2 = {
+        name: 'Test Product 2',
+        description: 'A test product description',
+        price: 99.99,
+        stockLevel: 10,
+        categoryId: testCategory.id,
+      };
+
+      const product1 = await productService.createProduct(testUser.id, createDto1, 'key-1');
+      const product2 = await productService.createProduct(testUser.id, createDto2, 'key-2');
+
+      expect(product1.id).not.toBe(product2.id);
+      expect(product1.name).toBe('Test Product 1');
+      expect(product2.name).toBe('Test Product 2');
     });
   });
 });

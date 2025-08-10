@@ -1,6 +1,7 @@
 import { Router } from "express";
 import validate from '../middlewares/validate';
 import { authenticate } from '../middlewares/authenticate';
+import { validateIdempotencyKey } from '../middlewares/idempotency';
 import * as productValidation from '../validations/product.validation'
 import * as productController from '../controllers/product.controller'
 
@@ -8,7 +9,7 @@ const router = Router();
 
 router
   .route("/")
-  .post(authenticate, validate(productValidation.createProduct), productController.createProduct)
+  .post(authenticate, validateIdempotencyKey, validate(productValidation.createProduct), productController.createProduct)
   .get(validate(productValidation.getProducts), productController.getProducts);
 
 router
@@ -38,6 +39,17 @@ export default router;
  *     tags: [Products]
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: X-Idempotency-Key
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^[a-zA-Z0-9_-]+$'
+ *           minLength: 1
+ *           maxLength: 255
+ *         description: Unique key to prevent duplicate requests
+ *         example: "create-product-123"
  *     requestBody:
  *       required: true
  *       content:
@@ -68,16 +80,29 @@ export default router;
  *                 createdBy: John Doe
  *                 category: Electronics
  *       400:
- *         description: Bad request - validation error or duplicate SKU
+ *         description: Bad request - validation error, missing idempotency key, or invalid idempotency key format
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: Validation failed
- *               errors:
- *                 body.categoryId: Invalid ULID format
+ *             examples:
+ *               validation_error:
+ *                 summary: Validation error
+ *                 value:
+ *                   status: error
+ *                   message: Validation failed
+ *                   errors:
+ *                     body.categoryId: Invalid ULID format
+ *               missing_idempotency_key:
+ *                 summary: Missing idempotency key
+ *                 value:
+ *                   status: error
+ *                   message: X-Idempotency-Key header is required
+ *               invalid_idempotency_key:
+ *                 summary: Invalid idempotency key format
+ *                 value:
+ *                   status: error
+ *                   message: Idempotency key can only contain alphanumeric characters, hyphens, and underscores
  *       401:
  *         description: Unauthorized - authentication required
  *         content:
@@ -87,6 +112,15 @@ export default router;
  *             example:
  *               status: error
  *               message: Invalid token! Please authenticate
+ *       409:
+ *         description: Conflict - duplicate product with same name and price
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: error
+ *               message: A product with the same name and price already exists
  *
  *   get:
  *     summary: Get all products (public endpoint with filtering and pagination)

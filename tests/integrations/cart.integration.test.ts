@@ -76,14 +76,12 @@ describe('Cart API Integration Tests', () => {
         categoryId: testCategory.id,
       },
     });
-
-    // tokens already extracted above
   });
 
-  describe('GET /cart', () => {
+  describe('GET /carts', () => {
     it('should return empty cart for new user', async () => {
       const response = await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .expect(200);
 
@@ -93,7 +91,7 @@ describe('Cart API Integration Tests', () => {
         data: {
           id: expect.any(String),
           items: [],
-          subtotal: 0,
+          subtotalKobo: 0,
           subtotalNaira: 0,
         },
       });
@@ -101,15 +99,15 @@ describe('Cart API Integration Tests', () => {
 
     it('should require authentication', async () => {
       await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .expect(401);
     });
   });
 
-  describe('POST /cart', () => {
+  describe('POST /carts', () => {
     it('should add item to cart', async () => {
       const response = await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct.id,
@@ -127,11 +125,11 @@ describe('Cart API Integration Tests', () => {
               sku: 'API-TEST-001',
               name: 'API Test Product',
               quantity: 3,
-              lineTotal: 59997,
-              lineTotalNaira: 599.97,
+              itemTotalKobo: 59997,
+              itemTotalNaira: 599.97,
             },
           ],
-          subtotal: 59997,
+          subtotalKobo: 59997,
           subtotalNaira: 599.97,
         },
       });
@@ -139,7 +137,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should reject invalid quantity', async () => {
       await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct.id,
@@ -150,7 +148,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should reject adding own product', async () => {
       const response = await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct2.id,
@@ -163,7 +161,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should reject quantity exceeding stock', async () => {
       const response = await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct.id,
@@ -176,7 +174,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should require authentication', async () => {
       await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .send({
           productId: testProduct.id,
           quantity: 1,
@@ -185,10 +183,10 @@ describe('Cart API Integration Tests', () => {
     });
   });
 
-  describe('PUT /cart/:productId', () => {
+  describe('PUT /carts/:productId', () => {
     beforeEach(async () => {
       await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct.id,
@@ -198,7 +196,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should update item quantity', async () => {
       const response = await request(testApp)
-        .put(`/api/v1/cart/${testProduct.id}`)
+        .put(`/api/v1/carts/${testProduct.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           quantity: 5,
@@ -213,17 +211,17 @@ describe('Cart API Integration Tests', () => {
             {
               productId: testProduct.id,
               quantity: 5,
-              lineTotal: 99995,
+              itemTotalKobo: 99995,
             },
           ],
-          subtotal: 99995,
+          subtotalKobo: 99995,
         },
       });
     });
 
     it('should reject invalid quantity', async () => {
       await request(testApp)
-        .put(`/api/v1/cart/${testProduct.id}`)
+        .put(`/api/v1/carts/${testProduct.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           quantity: 0,
@@ -233,7 +231,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should reject quantity exceeding stock', async () => {
       await request(testApp)
-        .put(`/api/v1/cart/${testProduct.id}`)
+        .put(`/api/v1/carts/${testProduct.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           quantity: 20,
@@ -243,7 +241,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should handle non-existent cart item', async () => {
       await request(testApp)
-        .put(`/api/v1/cart/${testProduct2.id}`)
+        .put(`/api/v1/carts/${testProduct2.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           quantity: 2,
@@ -255,7 +253,7 @@ describe('Cart API Integration Tests', () => {
   describe('DELETE /cart/:productId', () => {
     beforeEach(async () => {
       await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct.id,
@@ -265,7 +263,7 @@ describe('Cart API Integration Tests', () => {
 
     it('should remove item from cart', async () => {
       const response = await request(testApp)
-        .delete(`/api/v1/cart/${testProduct.id}`)
+        .delete(`/api/v1/carts/${testProduct.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .expect(200);
 
@@ -274,7 +272,7 @@ describe('Cart API Integration Tests', () => {
         message: 'Cart item removed successfully',
         data: {
           items: [],
-          subtotal: 0,
+          subtotalKobo: 0,
           subtotalNaira: 0,
         },
       });
@@ -282,14 +280,14 @@ describe('Cart API Integration Tests', () => {
 
     it('should handle non-existent cart item', async () => {
       await request(testApp)
-        .delete(`/api/v1/cart/${testProduct2.id}`)
+        .delete(`/api/v1/carts/${testProduct2.id}`)
         .set('Cookie', [`accessToken=${authToken}`])
         .expect(404);
     });
 
     it('should require authentication', async () => {
       await request(testApp)
-        .delete(`/api/v1/cart/${testProduct.id}`)
+        .delete(`/api/v1/carts/${testProduct.id}`)
         .expect(401);
     });
   });
@@ -297,7 +295,7 @@ describe('Cart API Integration Tests', () => {
   describe('Cart isolation between users', () => {
     it('should isolate carts between different users', async () => {
       await request(testApp)
-        .post('/api/v1/cart')
+        .post('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .send({
           productId: testProduct.id,
@@ -305,14 +303,14 @@ describe('Cart API Integration Tests', () => {
         });
 
       const user2CartResponse = await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken2}`])
         .expect(200);
 
       expect(user2CartResponse.body.data.items).toHaveLength(0);
 
       const user1CartResponse = await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .set('Cookie', [`accessToken=${authToken}`])
         .expect(200);
 

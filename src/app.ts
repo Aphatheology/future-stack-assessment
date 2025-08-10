@@ -13,6 +13,7 @@ import { apiLimiter } from './middlewares/rateLimiter';
 
 const app = express();
 
+app.set('trust proxy', true);
 app.use(helmet());
 app.use(apiLimiter);
 
@@ -40,6 +41,16 @@ app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {
   sendSuccess(res, StatusCodes.OK, 'Welcome to Mustapha\'s Paystack Future Stack Assessment');
+});
+
+app.get('/health', (req: Request, res: Response) => {
+  const healthCheck = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: config.env
+  };
+  sendSuccess(res, StatusCodes.OK, 'Health check successful', healthCheck);
 });
 
 app.use("*error", (req: Request, res: Response) => {

@@ -406,7 +406,7 @@ describe('Auth API Integration Tests', () => {
 
     it('should access protected route with valid token', async () => {
       const response = await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .set('Cookie', [`accessToken=${accessToken}`])
         .expect(200);
 
@@ -415,7 +415,7 @@ describe('Auth API Integration Tests', () => {
 
     it('should reject protected route without token', async () => {
       const response = await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .expect(401);
 
       expect(response.body.status).toBe('error');
@@ -424,7 +424,7 @@ describe('Auth API Integration Tests', () => {
 
     it('should reject protected route with invalid token', async () => {
       const response = await request(testApp)
-        .get('/api/v1/cart')
+        .get('/api/v1/carts')
         .set('Cookie', ['accessToken=invalid-token'])
         .expect(401);
 

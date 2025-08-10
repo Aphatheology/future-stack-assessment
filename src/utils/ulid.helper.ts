@@ -7,6 +7,7 @@ export enum EntityPrefix {
   CATEGORY = 'cat',
   CART = 'crt',
   CART_ITEM = 'cit',
+  IDEMPOTENCY_KEY = 'idk',
 }
 
 export interface UlidComponents {
@@ -21,7 +22,7 @@ export class UlidHelper {
   }
 
   static parse(id: string): UlidComponents | null {
-    if (!id || !id.includes('_')) {
+    if (!id?.includes('_')) {
       return null;
     }
 

@@ -68,11 +68,11 @@ export interface UpdateCartItemDto {
  *           type: integer
  *           description: Quantity in cart
  *           example: 2
- *         lineTotal:
+ *         itemTotalKobo:
  *           type: integer
  *           description: Total price for this line item in smallest currency unit (kobo)
  *           example: 199998
- *         lineTotalNaira:
+ *         itemTotalNaira:
  *           type: number
  *           format: float
  *           description: Total price for this line item in naira
@@ -88,14 +88,14 @@ export interface UpdateCartItemDto {
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/CartItem'
- *         subtotal:
+ *         subtotalKobo:
  *           type: integer
- *           description: Total cart subtotal in smallest currency unit (kobo)
+ *           description: Total cart subtotalKobo in smallest currency unit (kobo)
  *           example: 199998
  *         subtotalNaira:
  *           type: number
  *           format: float
- *           description: Total cart subtotal in naira
+ *           description: Total cart subtotalKobo in naira
  *           example: 1999.98
  *     CartResponse:
  *       type: object

@@ -27,7 +27,7 @@ export default router;
 
 /**
  * @swagger
- * /cart:
+ * /carts:
  *   get:
  *     summary: Get the authenticated user's cart
  *     tags: [Cart]
@@ -53,9 +53,9 @@ export default router;
  *                     unitPrice: 99999
  *                     currency: NGN
  *                     quantity: 2
- *                     lineTotal: 199998
- *                     lineTotalNaira: 1999.98
- *                 subtotal: 199998
+ *                     itemTotalKobo: 199998
+ *                     itemTotalNaira: 1999.98
+ *                 subtotalKobo: 199998
  *                 subtotalNaira: 1999.98
  *       401:
  *         description: Unauthorized - authentication required
@@ -99,9 +99,9 @@ export default router;
  *                     unitPrice: 99999
  *                     currency: NGN
  *                     quantity: 2
- *                     lineTotal: 199998
- *                     lineTotalNaira: 1999.98
- *                 subtotal: 199998
+ *                     itemTotalKobo: 199998
+ *                     itemTotalNaira: 1999.98
+ *                 subtotalKobo: 199998
  *                 subtotalNaira: 1999.98
  *       400:
  *         description: Bad request - validation error, insufficient stock, or own product
@@ -142,7 +142,7 @@ export default router;
 
 /**
  * @swagger
- * /cart/{productId}:
+ * /carts/{productId}:
  *   put:
  *     summary: Update quantity of a cart item
  *     description: Update the quantity of an item in your cart.
@@ -183,9 +183,9 @@ export default router;
  *                     unitPrice: 99999
  *                     currency: NGN
  *                     quantity: 3
- *                     lineTotal: 299997
- *                     lineTotalNaira: 2999.97
- *                 subtotal: 299997
+ *                     itemTotalKobo: 299997
+ *                     itemTotalNaira: 2999.97
+ *                 subtotalKobo: 299997
  *                 subtotalNaira: 2999.97
  *       400:
  *         description: Bad request - validation error or insufficient stock
@@ -241,7 +241,7 @@ export default router;
  *               data:
  *                 id: crt_01K1XAVQNJ9CFYC5TXCRE2S56Z
  *                 items: []
- *                 subtotal: 0
+ *                 subtotalKobo: 0
  *                 subtotalNaira: 0
  *       401:
  *         description: Unauthorized - authentication required

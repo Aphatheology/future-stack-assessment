@@ -1,11 +1,16 @@
 import morgan from 'morgan';
 import { Request, Response } from 'express';
-import config from './env';
 import logger from './logger';
 
 morgan.token('message', (_req: Request, res: Response) => res.locals['errorMessage'] || '');
 
-const getIpFormat = () => (config.env === 'production' ? ':remote-addr - ' : '');
+morgan.token('remote-addr', (req: Request) => {
+  return req.headers['x-forwarded-for'] as string || 
+         req.socket.remoteAddress || 
+         req.ip;
+});
+
+const getIpFormat = () => ':remote-addr - ';
 const successResponseFormat = `${getIpFormat()}:method :url :status - :response-time ms`;
 const errorResponseFormat = `${getIpFormat()}:method :url :status - :response-time ms - message: :message`;
 

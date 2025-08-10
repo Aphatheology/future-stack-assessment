@@ -12,13 +12,13 @@ export interface CartViewItem {
   unitPrice: number;
   currency: string;
   quantity: number;
-  lineTotal: number;
-  lineTotalNaira: number;
+  itemTotalKobo: number;
+  itemTotalNaira: number;
 }
 
 export interface CartView {
   id: string;
   items: CartViewItem[];
-  subtotal: number;
+  subtotalKobo: number;
   subtotalNaira: number;
 }

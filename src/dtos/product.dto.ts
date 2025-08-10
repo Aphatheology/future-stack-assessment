@@ -59,7 +59,7 @@ export interface ProductQueryDto {
  *         categoryId:
  *           type: string
  *           description: Category ID the product belongs to
- *           example: "cat_01HXYZ1234567890ABCDEF"
+ *           example: "cat_01K1XAVQMST2S7SXPRYV1XJ9Q2"
  *     UpdateProductDto:
  *       type: object
  *       properties:
@@ -83,7 +83,7 @@ export interface ProductQueryDto {
  *         categoryId:
  *           type: string
  *           description: Category ID the product belongs to
- *           example: "cat_01HXYZ1234567890ABCDEF"
+ *           example: "cat_01K1XAVQMST2S7SXPRYV1XJ9Q2"
  *     Product:
  *       type: object
  *       properties:
@@ -144,7 +144,7 @@ export interface ProductQueryDto {
  *         id:
  *           type: string
  *           description: Category unique identifier
- *           example: "cat_01HXYZ1234567890ABCDEF"
+ *           example: "cat_01K1XAVQMST2S7SXPRYV1XJ9Q2"
  *         name:
  *           type: string
  *           description: Category name

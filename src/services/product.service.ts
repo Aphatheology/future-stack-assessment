@@ -77,8 +77,81 @@ export default class ProductService {
     return products.map(product => this.transformProduct(product));
   }
 
-  async createProduct(userId: string, createProductDto: CreateProductDto): Promise<TransformedProduct> {
+  private async checkIdempotencyKey(idempotencyKey: string, userId: string): Promise<TransformedProduct | null> {
+    const existingKey = await prisma.idempotencyKey.findUnique({
+      where: { key: idempotencyKey },
+      include: {
+        product: {
+          include: {
+            category: {
+              select: { name: true }
+            },
+            creator: {
+              select: { name: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (existingKey && existingKey.userId === userId && existingKey.product) {
+      return this.transformProduct(existingKey.product);
+    }
+
+    return null;
+  }
+
+  private async checkDuplicateProduct(userId: string, name: string, price: number): Promise<void> {
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        createdBy: userId,
+        name: name,
+        price: price
+      }
+    });
+
+    if (existingProduct) {
+      throw new ApiError(StatusCodes.CONFLICT, 'A product with the same name and price already exists');
+    }
+  }
+
+  private async storeIdempotencyKey(idempotencyKey: string, userId: string, productId: string): Promise<void> {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    await prisma.idempotencyKey.create({
+      data: {
+        id: UlidHelper.generate(EntityPrefix.IDEMPOTENCY_KEY),
+        key: idempotencyKey,
+        userId: userId,
+        productId: productId,
+        expiresAt: expiresAt
+      }
+    });
+  }
+
+  private async cleanupExpiredIdempotencyKeys(): Promise<void> {
+    const now = new Date();
+    await prisma.idempotencyKey.deleteMany({
+      where: {
+        expiresAt: {
+          lt: now
+        }
+      }
+    });
+  }
+
+  async createProduct(userId: string, createProductDto: CreateProductDto, idempotencyKey?: string): Promise<TransformedProduct> {
     const { name, description, price, stockLevel, categoryId } = createProductDto;
+
+    if (idempotencyKey) {
+      const existingProduct = await this.checkIdempotencyKey(idempotencyKey, userId);
+      if (existingProduct) {
+        return existingProduct;
+      }
+    }
+
+    await this.checkDuplicateProduct(userId, name, price);
 
     const category = await prisma.category.findUnique({
       where: { id: categoryId }
@@ -117,6 +190,10 @@ export default class ProductService {
         }
       }
     });
+
+    if (idempotencyKey) {
+      await this.storeIdempotencyKey(idempotencyKey, userId, productId);
+    }
 
     return this.transformProduct(product);
   }

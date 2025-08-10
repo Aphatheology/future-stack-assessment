@@ -78,7 +78,7 @@ describe('CartService', () => {
       expect(cart).toEqual({
         id: expect.any(String),
         items: [],
-        subtotal: 0,
+        subtotalKobo: 0,
         subtotalNaira: 0,
       });
     });
@@ -98,10 +98,10 @@ describe('CartService', () => {
         name: 'Test Product',
         price: 100.0,
         quantity: 2,
-        lineTotal: 20000,
-        lineTotalNaira: 200.0,
+        itemTotalKobo: 20000,
+        itemTotalNaira: 200.0,
       });
-      expect(cart.subtotal).toBe(20000);
+      expect(cart.subtotalKobo).toBe(20000);
       expect(cart.subtotalNaira).toBe(200.0);
     });
   });
@@ -115,7 +115,7 @@ describe('CartService', () => {
 
       expect(cart.items).toHaveLength(1);
       expect(cart.items[0].quantity).toBe(2);
-      expect(cart.subtotal).toBe(20000);
+      expect(cart.subtotalKobo).toBe(20000);
     });
 
     it('should update quantity when adding existing item', async () => {
@@ -131,7 +131,7 @@ describe('CartService', () => {
 
       expect(cart.items).toHaveLength(1);
       expect(cart.items[0].quantity).toBe(5);
-      expect(cart.subtotal).toBe(50000);
+      expect(cart.subtotalKobo).toBe(50000);
     });
 
     it('should throw error for invalid quantity', async () => {
@@ -201,7 +201,7 @@ describe('CartService', () => {
       );
 
       expect(cart.items[0].quantity).toBe(5);
-      expect(cart.subtotal).toBe(50000);
+      expect(cart.subtotalKobo).toBe(50000);
     });
 
     it('should throw error for invalid quantity', async () => {
@@ -263,7 +263,7 @@ describe('CartService', () => {
       const cart = await cartService.removeItem(testUser.id, testProduct.id);
 
       expect(cart.items).toHaveLength(0);
-      expect(cart.subtotal).toBe(0);
+      expect(cart.subtotalKobo).toBe(0);
     });
 
     it('should throw error for non-existent cart item', async () => {
@@ -310,7 +310,7 @@ describe('CartService', () => {
 
       expect(cart.items).toHaveLength(1);
       expect(cart.items[0].productId).toBe(anotherProduct.id);
-      expect(cart.subtotal).toBe(3000);
+      expect(cart.subtotalKobo).toBe(3000);
     });
   });
 });

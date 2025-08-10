@@ -10,12 +10,13 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - ✅ Stock level management
 - ✅ Search and filtering capabilities
 - ✅ Pagination support
+- ✅ **Idempotent product creation** with duplicate prevention
 
 ### Shopping Cart
 - ✅ Add items to cart with quantity validation
 - ✅ Update item quantities with stock validation
 - ✅ Remove items from cart
-- ✅ View cart with product details and subtotal
+- ✅ View cart with product details and subtotalKobo
 - ✅ Business rule: Users cannot add their own products to cart
 - ✅ Dual pricing: Both kobo (unit price) and naira values
 
@@ -136,6 +137,9 @@ Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be 
 - `PUT /cart/:productId` - Update item quantity
 - `DELETE /cart/:productId` - Remove item from cart
 
+### Categories Endpoints
+- `GET /categories` - Get all categories in the system
+
 ## 🏗 Architecture & Design Decisions
 
 ### Database Design
@@ -180,8 +184,8 @@ Example:
 {
   "price": 999.99,
   "unitPrice": 99999,
-  "lineTotal": 199998,
-  "lineTotalNaira": 1999.98
+  "itemTotalKobo": 199998,
+  "itemTotalNaira": 1999.98
 }
 ```
 
@@ -208,9 +212,32 @@ src/
 └── validations/    # Joi validation schemas
 ```
 
-## 🧪 Testing
+## 🔄 Idempotency
 
-The test suite automatically handles database setup and provides comprehensive coverage for all modules:
+The product creation endpoint supports idempotency to prevent duplicate requests and ensure data consistency.
+
+### How It Works
+
+1. **Idempotency Key**: Required `X-Idempotency-Key` header for product creation
+2. **Duplicate Prevention**: Same key returns existing product, different key checks for duplicates
+3. **User-Scoped**: Keys are unique per user
+4. **Auto-Expiry**: Keys expire after 24 hours
+
+### Usage Example
+
+```bash
+curl -X POST /api/v1/products \
+  -H "X-Idempotency-Key: create-laptop-2024-01-15" \
+  -H "Cookie: accessToken=your-token" \
+  -d '{
+    "name": "Gaming Laptop",
+    "price": 1500.99,
+    "stockLevel": 5,
+    "categoryId": "cat_123"
+  }'
+```
+
+## 🧪 Testing
 
 ```bash
 # Run all tests
@@ -296,6 +323,7 @@ yarn start
 - [ ] Categories hierarchy 
 - [ ] Real-time stock updates via WebSockets
 - [ ] Caching layer with Redis
+- [ ] Extend idempotency to other endpoints, especially payment related endpoints when implemented
 
 
 **Built with ❤️ for the Paystack Future Stack Program**

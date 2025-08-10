@@ -9,7 +9,8 @@ const productService = new ProductService();
 
 export const createProduct = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user.userId;
-  const product = await productService.createProduct(userId, req.body);
+  const idempotencyKey = (req as any).idempotencyKey;
+  const product = await productService.createProduct(userId, req.body, idempotencyKey);
   sendSuccess(res, StatusCodes.CREATED, 'Product created successfully', product);
 });
 

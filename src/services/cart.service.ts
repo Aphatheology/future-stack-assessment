@@ -23,7 +23,7 @@ export default class CartService {
 
   private transformCartItems(items: CartItemWithProduct[]): CartViewItem[] {
     return items.map(item => {
-      const lineTotal = Number(item.product.unitPrice) * item.quantity;
+      const itemTotalKobo = Number(item.product.unitPrice) * item.quantity;
       return {
         productId: item.productId,
         sku: item.product.sku,
@@ -32,21 +32,21 @@ export default class CartService {
         unitPrice: Number(item.product.unitPrice),
         currency: item.product.currency,
         quantity: item.quantity,
-        lineTotal,
-        lineTotalNaira: NGNCurrencyUtils.koboToNaira(BigInt(lineTotal)),
+        itemTotalKobo,
+        itemTotalNaira: NGNCurrencyUtils.koboToNaira(BigInt(itemTotalKobo)),
       };
     });
   }
 
   private buildCartView(cartId: string, items: CartItemWithProduct[]): CartView {
     const transformedItems = this.transformCartItems(items);
-    const subtotal = transformedItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const subtotalKobo = transformedItems.reduce((sum, item) => sum + item.itemTotalKobo, 0);
     
     return {
       id: cartId,
       items: transformedItems,
-      subtotal,
-      subtotalNaira: NGNCurrencyUtils.koboToNaira(BigInt(subtotal)),
+      subtotalKobo,
+      subtotalNaira: NGNCurrencyUtils.koboToNaira(BigInt(subtotalKobo)),
     };
   }
 

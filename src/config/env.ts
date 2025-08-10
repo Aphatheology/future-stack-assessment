@@ -3,7 +3,7 @@ import path from 'path';
 import Joi from 'joi';
 import { Request } from 'express';
 
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 interface EnvVars {
   NODE_ENV: string;
