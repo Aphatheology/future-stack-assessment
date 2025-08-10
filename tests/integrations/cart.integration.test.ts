@@ -171,9 +171,7 @@ describe('Cart API Integration Tests', () => {
         })
         .expect(400);
 
-      expect(response.body.message).toContain(
-        'You cannot add your own products to your cart'
-      );
+      expect(response.body.message).toContain('You cannot add your own products to your cart');
     });
 
     it('should reject quantity exceeding stock', async () => {
@@ -303,9 +301,7 @@ describe('Cart API Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      await request(testApp)
-        .delete(`/api/v1/carts/${testProduct.id}`)
-        .expect(401);
+      await request(testApp).delete(`/api/v1/carts/${testProduct.id}`).expect(401);
     });
   });
 

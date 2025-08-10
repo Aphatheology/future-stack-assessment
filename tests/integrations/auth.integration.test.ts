@@ -45,12 +45,8 @@ describe('Auth API Integration Tests', () => {
 
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(
-        cookies.some((cookie: string) => cookie.includes('accessToken'))
-      ).toBe(true);
-      expect(
-        cookies.some((cookie: string) => cookie.includes('refreshToken'))
-      ).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('accessToken'))).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('refreshToken'))).toBe(true);
 
       const createdUser = await prisma.user.findUnique({
         where: { email: registerData.email },
@@ -66,10 +62,7 @@ describe('Auth API Integration Tests', () => {
       };
 
       // Register first user
-      await request(testApp)
-        .post('/api/v1/auth/register')
-        .send(registerData)
-        .expect(201);
+      await request(testApp).post('/api/v1/auth/register').send(registerData).expect(201);
 
       // Try to register with same email
       const response = await request(testApp)
@@ -143,9 +136,7 @@ describe('Auth API Integration Tests', () => {
 
       // Name should be sanitized
       expect(response.body.data.name).not.toContain('<script>');
-      expect(response.body.data.name).toBe(
-        'Test scriptalert("xss")/script User'
-      );
+      expect(response.body.data.name).toBe('Test scriptalert("xss")/script User');
     });
 
     it('should respect rate limiting', async () => {
@@ -214,12 +205,8 @@ describe('Auth API Integration Tests', () => {
       // Should set cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(
-        cookies.some((cookie: string) => cookie.includes('accessToken'))
-      ).toBe(true);
-      expect(
-        cookies.some((cookie: string) => cookie.includes('refreshToken'))
-      ).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('accessToken'))).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('refreshToken'))).toBe(true);
     });
 
     it('should return 401 for non-existent email', async () => {
@@ -317,18 +304,12 @@ describe('Auth API Integration Tests', () => {
       // Should set new cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(
-        cookies.some((cookie: string) => cookie.includes('accessToken'))
-      ).toBe(true);
-      expect(
-        cookies.some((cookie: string) => cookie.includes('refreshToken'))
-      ).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('accessToken'))).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('refreshToken'))).toBe(true);
     });
 
     it('should return 401 for missing refresh token', async () => {
-      const response = await request(testApp)
-        .post('/api/v1/auth/refresh-token')
-        .expect(401);
+      const response = await request(testApp).post('/api/v1/auth/refresh-token').expect(401);
 
       expect(response.body.status).toBe('error');
     });
@@ -371,12 +352,8 @@ describe('Auth API Integration Tests', () => {
       // Should clear cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
-      expect(
-        cookies.some((cookie: string) => cookie.includes('accessToken=;'))
-      ).toBe(true);
-      expect(
-        cookies.some((cookie: string) => cookie.includes('refreshToken=;'))
-      ).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('accessToken=;'))).toBe(true);
+      expect(cookies.some((cookie: string) => cookie.includes('refreshToken=;'))).toBe(true);
 
       // Refresh token should no longer work
       await request(testApp)
@@ -386,9 +363,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 401 for missing refresh token', async () => {
-      const response = await request(testApp)
-        .post('/api/v1/auth/logout')
-        .expect(401);
+      const response = await request(testApp).post('/api/v1/auth/logout').expect(401);
 
       expect(response.body.status).toBe('error');
     });

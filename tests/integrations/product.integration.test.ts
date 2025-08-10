@@ -61,31 +61,23 @@ describe('Product API Integration Tests', () => {
     });
 
     // Get auth tokens
-    const loginResponse1 = await request(testApp)
-      .post('/api/v1/auth/login')
-      .send({
-        email: testUser.email,
-        password: 'P@ssw0rd123',
-      });
+    const loginResponse1 = await request(testApp).post('/api/v1/auth/login').send({
+      email: testUser.email,
+      password: 'P@ssw0rd123',
+    });
 
-    const loginResponse2 = await request(testApp)
-      .post('/api/v1/auth/login')
-      .send({
-        email: testUser2.email,
-        password: 'P@ssw0rd123',
-      });
+    const loginResponse2 = await request(testApp).post('/api/v1/auth/login').send({
+      email: testUser2.email,
+      password: 'P@ssw0rd123',
+    });
 
     const cookies1 = loginResponse1.headers['set-cookie'];
     const cookies2 = loginResponse2.headers['set-cookie'];
 
     const cookies1Array = cookies1 as unknown as string[];
     const cookies2Array = cookies2 as unknown as string[];
-    const accessCookie1 = cookies1Array?.find((cookie: string) =>
-      cookie.includes('accessToken')
-    );
-    const accessCookie2 = cookies2Array?.find((cookie: string) =>
-      cookie.includes('accessToken')
-    );
+    const accessCookie1 = cookies1Array?.find((cookie: string) => cookie.includes('accessToken'));
+    const accessCookie2 = cookies2Array?.find((cookie: string) => cookie.includes('accessToken'));
 
     authToken = accessCookie1?.split('=')[1].split(';')[0] || '';
     authToken2 = accessCookie2?.split('=')[1].split(';')[0] || '';
@@ -195,9 +187,7 @@ describe('Product API Integration Tests', () => {
 
       // Name should be sanitized
       expect(response.body.data.name).not.toContain('<script>');
-      expect(response.body.data.name).toBe(
-        'Gaming scriptalert("xss")/script Laptop'
-      );
+      expect(response.body.data.name).toBe('Gaming scriptalert("xss")/script Laptop');
     });
 
     it('should require X-Idempotency-Key header', async () => {
@@ -216,9 +206,7 @@ describe('Product API Integration Tests', () => {
         .expect(400);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toBe(
-        'X-Idempotency-Key header is required'
-      );
+      expect(response.body.message).toBe('X-Idempotency-Key header is required');
     });
 
     it('should return same product for duplicate idempotency key', async () => {
@@ -296,9 +284,7 @@ describe('Product API Integration Tests', () => {
         .expect(409);
 
       expect(response.body.status).toBe('error');
-      expect(response.body.message).toBe(
-        'A product with the same name and price already exists'
-      );
+      expect(response.body.message).toBe('A product with the same name and price already exists');
     });
 
     it('should allow different users to create products with same name and price', async () => {
@@ -373,9 +359,7 @@ describe('Product API Integration Tests', () => {
     });
 
     it('should return paginated products without authentication', async () => {
-      const response = await request(testApp)
-        .get('/api/v1/products')
-        .expect(200);
+      const response = await request(testApp).get('/api/v1/products').expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data.data.length).toBe(3);
@@ -392,9 +376,7 @@ describe('Product API Integration Tests', () => {
     });
 
     it('should search products by name', async () => {
-      const response = await request(testApp)
-        .get('/api/v1/products?search=laptop')
-        .expect(200);
+      const response = await request(testApp).get('/api/v1/products?search=laptop').expect(200);
 
       expect(response.body.data.data).toHaveLength(1);
       expect(response.body.data.data[0].name).toBe('Gaming Laptop');
@@ -410,14 +392,10 @@ describe('Product API Integration Tests', () => {
     });
 
     it('should filter products by stock availability', async () => {
-      const response = await request(testApp)
-        .get('/api/v1/products?inStock=true')
-        .expect(200);
+      const response = await request(testApp).get('/api/v1/products?inStock=true').expect(200);
 
       expect(response.body.data.data).toHaveLength(2);
-      expect(
-        response.body.data.data.every((p: Product) => p.stockLevel > 0)
-      ).toBe(true);
+      expect(response.body.data.data.every((p: Product) => p.stockLevel > 0)).toBe(true);
     });
 
     it('should sort products by price', async () => {
@@ -430,9 +408,7 @@ describe('Product API Integration Tests', () => {
     });
 
     it('should handle pagination', async () => {
-      const response = await request(testApp)
-        .get('/api/v1/products?page=1&limit=2')
-        .expect(200);
+      const response = await request(testApp).get('/api/v1/products?page=1&limit=2').expect(200);
 
       expect(response.body.data.data).toHaveLength(2);
       expect(response.body.data.pagination.totalPages).toBe(2);
@@ -459,9 +435,7 @@ describe('Product API Integration Tests', () => {
     });
 
     it('should return product details without authentication', async () => {
-      const response = await request(testApp)
-        .get(`/api/v1/products/${testProduct.id}`)
-        .expect(200);
+      const response = await request(testApp).get(`/api/v1/products/${testProduct.id}`).expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toMatchObject({
@@ -474,9 +448,7 @@ describe('Product API Integration Tests', () => {
 
     it('should return 404 for non-existent product', async () => {
       const nonExistentId = UlidHelper.generate(EntityPrefix.PRODUCT);
-      const response = await request(testApp)
-        .get(`/api/v1/products/${nonExistentId}`)
-        .expect(404);
+      const response = await request(testApp).get(`/api/v1/products/${nonExistentId}`).expect(404);
 
       expect(response.body).toMatchObject({
         status: 'error',
@@ -485,9 +457,7 @@ describe('Product API Integration Tests', () => {
     });
 
     it('should return 400 for invalid product ID format', async () => {
-      const response = await request(testApp)
-        .get('/api/v1/products/invalid-id')
-        .expect(400);
+      const response = await request(testApp).get('/api/v1/products/invalid-id').expect(400);
 
       expect(response.body.status).toBe('error');
     });

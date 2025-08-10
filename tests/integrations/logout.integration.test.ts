@@ -31,10 +31,7 @@ describe('Logout Integration Tests', () => {
     it('should logout user and invalidate access token', async () => {
       const response = await request(testApp)
         .post('/api/v1/auth/logout')
-        .set('Cookie', [
-          `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`,
-        ])
+        .set('Cookie', [`accessToken=${accessToken}`, `refreshToken=${refreshToken}`])
         .expect(200);
 
       expect(response.body.status).toBe('success');
@@ -43,12 +40,8 @@ describe('Logout Integration Tests', () => {
       const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
 
-      const accessTokenCookie = cookies.find(cookie =>
-        cookie.includes('accessToken')
-      );
-      const refreshTokenCookie = cookies.find(cookie =>
-        cookie.includes('refreshToken')
-      );
+      const accessTokenCookie = cookies.find(cookie => cookie.includes('accessToken'));
+      const refreshTokenCookie = cookies.find(cookie => cookie.includes('refreshToken'));
 
       expect(accessTokenCookie).toContain('Max-Age=0');
       expect(refreshTokenCookie).toContain('Max-Age=0');
@@ -57,10 +50,7 @@ describe('Logout Integration Tests', () => {
     it('should reject requests with blacklisted access token', async () => {
       await request(testApp)
         .post('/api/v1/auth/logout')
-        .set('Cookie', [
-          `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`,
-        ])
+        .set('Cookie', [`accessToken=${accessToken}`, `refreshToken=${refreshToken}`])
         .expect(200);
 
       const response = await request(testApp)
@@ -75,10 +65,7 @@ describe('Logout Integration Tests', () => {
     it('should reject requests with manually added blacklisted token in header', async () => {
       await request(testApp)
         .post('/api/v1/auth/logout')
-        .set('Cookie', [
-          `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`,
-        ])
+        .set('Cookie', [`accessToken=${accessToken}`, `refreshToken=${refreshToken}`])
         .expect(200);
 
       const response = await request(testApp)
@@ -93,10 +80,7 @@ describe('Logout Integration Tests', () => {
     it('should allow access with new token after logout', async () => {
       await request(testApp)
         .post('/api/v1/auth/logout')
-        .set('Cookie', [
-          `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`,
-        ])
+        .set('Cookie', [`accessToken=${accessToken}`, `refreshToken=${refreshToken}`])
         .expect(200);
 
       const loginData = {
@@ -109,12 +93,8 @@ describe('Logout Integration Tests', () => {
         .send(loginData)
         .expect(200);
 
-      const cookies = loginResponse.headers[
-        'set-cookie'
-      ] as unknown as string[];
-      const accessTokenCookie = cookies.find(cookie =>
-        cookie.startsWith('accessToken=')
-      );
+      const cookies = loginResponse.headers['set-cookie'] as unknown as string[];
+      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
 
       const response = await request(testApp)
         .get('/api/v1/carts')
@@ -137,10 +117,7 @@ describe('Logout Integration Tests', () => {
     it('should handle logout with invalid refresh token', async () => {
       const response = await request(testApp)
         .post('/api/v1/auth/logout')
-        .set('Cookie', [
-          `accessToken=${accessToken}`,
-          'refreshToken=invalid-refresh-token',
-        ])
+        .set('Cookie', [`accessToken=${accessToken}`, 'refreshToken=invalid-refresh-token'])
         .expect(401);
 
       expect(response.body.status).toBe('error');

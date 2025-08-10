@@ -23,20 +23,6 @@ const createSwaggerSpec = (req?: Request) => {
           description: 'API server',
         },
       ],
-      components: {
-        securitySchemes: {
-          cookieAuth: {
-            type: 'apiKey',
-            in: 'cookie',
-            name: 'accessToken',
-          },
-        },
-      },
-      security: [
-        {
-          cookieAuth: [],
-        },
-      ],
     },
     apis: ['./src/routes/*.ts', './src/controllers/*.ts', './src/dtos/*.ts'],
   };

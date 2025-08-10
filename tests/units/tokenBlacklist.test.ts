@@ -40,23 +40,17 @@ describe('TokenBlacklistService', () => {
 
   describe('isBlacklisted', () => {
     it('should return true for blacklisted token', async () => {
-      const mockExists = redis.exists as jest.MockedFunction<
-        typeof redis.exists
-      >;
+      const mockExists = redis.exists as jest.MockedFunction<typeof redis.exists>;
       mockExists.mockResolvedValue(1);
 
       const result = await TokenBlacklistService.isBlacklisted('test-token');
 
       expect(result).toBe(true);
-      expect(mockExists).toHaveBeenCalledWith(
-        expect.stringContaining('blacklisted_token:')
-      );
+      expect(mockExists).toHaveBeenCalledWith(expect.stringContaining('blacklisted_token:'));
     });
 
     it('should return false for non-blacklisted token', async () => {
-      const mockExists = redis.exists as jest.MockedFunction<
-        typeof redis.exists
-      >;
+      const mockExists = redis.exists as jest.MockedFunction<typeof redis.exists>;
       mockExists.mockResolvedValue(0);
 
       const result = await TokenBlacklistService.isBlacklisted('test-token');
@@ -65,9 +59,7 @@ describe('TokenBlacklistService', () => {
     });
 
     it('should handle Redis errors gracefully', async () => {
-      const mockExists = redis.exists as jest.MockedFunction<
-        typeof redis.exists
-      >;
+      const mockExists = redis.exists as jest.MockedFunction<typeof redis.exists>;
       mockExists.mockRejectedValue(new Error('Redis connection error'));
 
       const result = await TokenBlacklistService.isBlacklisted('test-token');
@@ -83,18 +75,14 @@ describe('TokenBlacklistService', () => {
 
       await TokenBlacklistService.removeFromBlacklist('test-token');
 
-      expect(mockDel).toHaveBeenCalledWith(
-        expect.stringContaining('blacklisted_token:')
-      );
+      expect(mockDel).toHaveBeenCalledWith(expect.stringContaining('blacklisted_token:'));
     });
 
     it('should handle Redis errors gracefully', async () => {
       const mockDel = redis.del as jest.MockedFunction<typeof redis.del>;
       mockDel.mockRejectedValue(new Error('Redis connection error'));
 
-      await expect(
-        TokenBlacklistService.removeFromBlacklist('test-token')
-      ).resolves.not.toThrow();
+      await expect(TokenBlacklistService.removeFromBlacklist('test-token')).resolves.not.toThrow();
     });
   });
 });

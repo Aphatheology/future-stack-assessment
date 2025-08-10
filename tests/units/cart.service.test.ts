@@ -195,13 +195,9 @@ describe('CartService', () => {
     });
 
     it('should update item quantity', async () => {
-      const cart = await cartService.updateItemQuantity(
-        testUser.id,
-        testProduct.id,
-        {
-          quantity: 5,
-        }
-      );
+      const cart = await cartService.updateItemQuantity(testUser.id, testProduct.id, {
+        quantity: 5,
+      });
 
       expect(cart.items[0].quantity).toBe(5);
       expect(cart.subtotalKobo).toBe(50000);
@@ -284,9 +280,9 @@ describe('CartService', () => {
         },
       });
 
-      await expect(
-        cartService.removeItem(testUser.id, anotherProduct.id)
-      ).rejects.toThrow('Item not found in cart');
+      await expect(cartService.removeItem(testUser.id, anotherProduct.id)).rejects.toThrow(
+        'Item not found in cart'
+      );
     });
 
     it('should handle removing item from cart with multiple items', async () => {

@@ -16,7 +16,6 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - [Assumptions & Tradeoffs](#-assumptions--tradeoffs)
 - [Future Enhancements](#-future-enhancements)
 
-
 ## 🚀 Features
 
 ### Products Management
@@ -50,7 +49,6 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - ✅ Interactive API explorer at `/api/swagger`
 - ✅ Documentation json at `/api/swagger/json`
 
-
 ## 🛠 Tech Stack
 
 - **Main**: Node.js with TypeScript
@@ -63,7 +61,6 @@ A RESTful API for a shopping cart system built with Node.js, TypeScript, Express
 - **Documentation**: Swagger/OpenAPI
 - **Logging**: Winston
 - **Security**: Helmet, CORS
-
 
 ## 🗄 Database Schema
 
@@ -80,14 +77,12 @@ The application uses a MySQL database with the following entity relationship dia
 - **Cart & CartItem**: Shopping cart functionality
 - **IdempotencyKey**: Prevents duplicate operations
 
-
 ## 📋 Prerequisites
 
 - Node.js (v20 or later)
 - MySQL
 - Redis
 - yarn (npm can be used too, but will generate new package-lock.json)
-
 
 ## 🚀 Quick Start
 
@@ -153,13 +148,19 @@ yarn build
 yarn start
 ```
 
-The API will be available at `http://localhost:3000`
+The local API will be available at `http://localhost:3000`
 The base url is `http://localhost:3000/api/v1`
+
+To test with the deployed api, use: https://future-stack-assessment.onrender.com
+
 
 ## 📚 API Documentation
 
 Visit `http://localhost:3000/api/swagger` for the interactive Swagger documentation.
 Or `https://localhost:3000/api/swagger/json` for the JSON version, which can be used with tools like Postman.
+
+For deployed documentation: https://future-stack-assessment.onrender.com/api/swagger/
+Or `https://future-stack-assessment.onrender.com/api/swagger/json` for the JSON version.
 
 ### Authentication Endpoints
 
@@ -276,8 +277,7 @@ curl -X POST /api/v1/products \
 - **Log Levels**: Debug, Info, Warn, Error
 - **Log Output**: Console (using Winston logger)
 - **Query Log**: All queries are logged in development
-![Production Logs](docs/images/production-log.png)
-
+  ![Production Logs](docs/images/production-log.png)
 
 ## 📂 Project Structure
 
@@ -293,7 +293,6 @@ src/
 ├── utils/          # Utility functions
 └── validations/    # Joi validation schemas
 ```
-
 
 ## 🧪 Testing
 
@@ -357,7 +356,6 @@ The test suite includes:
 4. **Framework**: Express vs Nest
    - **Chosen**: Express for simplicity and flexibility
    - **Tradeoff**: Hard to implement patterns. Less inbuilt integration. Lot of yaml code for swagger docs. If project is to be improved with order/payment flow, I will go with Nest.
-
 
 ## 🔮 Future Enhancements
 
